@@ -14,7 +14,8 @@ public sealed class ReportFormatter
     public string BuildStatusReport(EquipmentStatus status, DateOnly asOfDate)
     {
         var selected = _service.GetByStatus(status);
-        var total = _service.CalculateTotalBookValue(_repository.GetAll(), asOfDate);
+        // Итог считаем только по позициям отчёта, а не по всему справочнику.
+        var total = _service.CalculateTotalBookValue(selected, asOfDate);
 
         var lines = selected.Select(item => $"{item.Id} | {item.Name} | {item.Status}").ToList();
         lines.Add($"Позиций: {selected.Count}");
