@@ -2,7 +2,7 @@ using TaskCoordinator;
 var service = new DiagnosticService();
 while (true)
 {
-    Console.WriteLine("\n1 — три диагностики; 2 — отмена; 3 — тайм-аут; 4 — WhenAny; 0 — выход");
+    Console.WriteLine("\n1 — три диагностики;\n2 — отмена;\n3 — тайм-аут;\n4 — WhenAny;\n5 — статусы;\n0 — выход");
     var cmd = Console.ReadLine();
     if (cmd == "0")
         break;
@@ -46,7 +46,12 @@ while (true)
             }
         }
         else if (cmd == "4")
-            Console.WriteLine("Первой завершилась: " + await service.FirstFinishedAsync());
+            Console.WriteLine("Первой завершилась: " + await service.Kto_Perviy());
+        else if (cmd == "5")
+        {
+            var r = await service.NotSafeAssync_not_hehe("Статусы", TimeSpan.FromMilliseconds(400), st => Console.WriteLine($"  статус: {st}"));
+            Console.WriteLine($"{r.Name}: {r.Status} {r.Details}");
+        }
         else
             Console.WriteLine("Неизвестная команда.");
     }
