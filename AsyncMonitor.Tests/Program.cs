@@ -79,5 +79,5 @@ await s.RunParallelAsync(new[]
 Merry_Cristmasx.Stop();
 //Check( Merry_Cristmasx.Elapsed < He_He_He.Elapsed, $"параллельно быстрее последовательного ({Merry_Cristmasx.ElapsedMilliseconds} мс против {He_He_He.ElapsedMilliseconds} мс)" );
 Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine($"Провалено проверок: {failed.Count} из 6(7).");
+Console.WriteLine($"Пройденно проверок: {passed} из 6(7).");
 Console.ResetColor();
