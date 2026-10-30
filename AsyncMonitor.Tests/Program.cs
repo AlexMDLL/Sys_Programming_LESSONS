@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Xml.Linq;
 var passed = 0;
 var failed = new List<string>();
+var count = 0;
 void Check( bool condition, string name)
 {
     var previous = Console.ForegroundColor;
@@ -13,8 +14,8 @@ void Check( bool condition, string name)
     }
     finally { Console.ForegroundColor = previous; }
 
-    if (condition) passed++;
-    else failed.Add(name);
+    if (condition) { passed++; count++; }
+    else { failed.Add(name); count++; }
 }
 var s = new CheckService();
 var one = await s.CheckServiceAsync("Тест", TimeSpan.FromMilliseconds(205));
@@ -79,5 +80,8 @@ await s.RunParallelAsync(new[]
 Merry_Cristmasx.Stop();
 //Check( Merry_Cristmasx.Elapsed < He_He_He.Elapsed, $"параллельно быстрее последовательного ({Merry_Cristmasx.ElapsedMilliseconds} мс против {He_He_He.ElapsedMilliseconds} мс)" );
 Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine($"Пройденно проверок: {passed} из 6(7).");
+Console.WriteLine($"Пройденно проверок: {passed} из {count}.");
+Console.ResetColor();
+Console.ForegroundColor = ConsoleColor.Red;
+Console.WriteLine($"Проваленно проверок: {failed.Count} из {count}.");
 Console.ResetColor();
