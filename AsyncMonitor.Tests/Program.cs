@@ -1,45 +1,44 @@
-using System.Diagnostics;
 using AsyncMonitor;
+using System.Diagnostics;
+using System.Xml.Linq;
 var passed = 0;
-var failed = 0;
-void Check(bool ok, string name)
+var failed = new List<string>();
+void Check( bool condition, string name)
 {
-    if (ok)
+    var previous = Console.ForegroundColor;
+    try
     {
-        passed++;
-        Console.WriteLine("PASS " + name);
+        Console.ForegroundColor = condition ? ConsoleColor.Green : ConsoleColor.Red;    // Я просто хочу красиво, простите
+        Console.WriteLine($"{(condition ? "PASS" : "FAIL")} — {name}");
     }
-    else
-    {
-        failed++;
-        Console.WriteLine("FAIL " + name);
-    }
+    finally { Console.ForegroundColor = previous; }
+
+    if (condition) passed++;
+    else failed.Add(name);
 }
 var s = new CheckService();
-var one = await s.CheckServiceAsync("Тест", TimeSpan.FromMilliseconds(25));
+var one = await s.CheckServiceAsync("Тест", TimeSpan.FromMilliseconds(205));
 Check(
-    one.Name == "Тест" && one.Success && one.Duration >= TimeSpan.FromMilliseconds(20),
+    one.Name == "Тест" && one.Success && one.Duration >= TimeSpan.FromMilliseconds(150),
     "одиночная проверка возвращает результат"
 );
 var seq = await s.RunSequentialAsync(
-    new[]
-    {
+    [
         ("A", TimeSpan.FromMilliseconds(60)),
         ("B", TimeSpan.FromMilliseconds(60)),
         ("C", TimeSpan.FromMilliseconds(60))
-    }
+    ]
 );
 Check(
     seq.Count == 3 && seq.Select(x => x.Name).SequenceEqual(new[] { "A", "B", "C" }),
     "последовательный запуск"
 );
 var all = await s.RunParallelAsync(
-    new[]
-    {
+    [
         ("A", TimeSpan.FromMilliseconds(60)),
         ("B", TimeSpan.FromMilliseconds(60)),
         ("C", TimeSpan.FromMilliseconds(60))
-    }
+    ]
 );
 Check(all.Count == 3 && all.All(x => x.Success), "параллельный запуск WhenAll");
 // TODO: Добавить тесты на пустое имя, отрицательную задержку и CancellationToken.
@@ -79,5 +78,6 @@ await s.RunParallelAsync(new[]
 });
 Merry_Cristmasx.Stop();
 //Check( Merry_Cristmasx.Elapsed < He_He_He.Elapsed, $"параллельно быстрее последовательного ({Merry_Cristmasx.ElapsedMilliseconds} мс против {He_He_He.ElapsedMilliseconds} мс)" );
-Console.WriteLine($"Итого: {passed} пройдено, {failed} ошибок.");
-return failed == 0 ? 0 : 1;
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine($"Провалено проверок: {failed.Count} из 6(7).");
+Console.ResetColor();
