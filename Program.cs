@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using AsyncFileScanner.Models;
 using AsyncFileScanner.Services;
 
@@ -18,7 +18,26 @@ static async Task RunAsync()
     string root = ReadDirectoryPath();
     HashSet<string> extensions = ReadExtensions();
 
-    var options = new ScanOptions(root, extensions);
+    //размеры спрашиваем в КБ, внутрь передаём байты
+    long minBytes = ReadSizeInKb("МИН РАЗМЕР В КБ (жмаешь enter — я откисну, и дальше сам будешь): ", 0);
+
+    long maxBytes;
+
+    while (true)
+    {
+        maxBytes = ReadSizeInKb("МАКС РАЗМЕР В КБ (жмаешь enter — я откисну, и дальше сам будешь): ", long.MaxValue);
+
+        if (maxBytes >= minBytes)
+            break;
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("Максимум меньше минимума, ты че, наоборот не?.");
+        Console.ResetColor();
+    }
+
+    int maxConcurrency = ReadMaxConcurrency();
+
+    var options = new ScanOptions(root, extensions, minBytes, maxBytes, maxConcurrency);
 
     var scanner = new FileScanner(new FileProbe());
 
@@ -26,7 +45,7 @@ static async Task RunAsync()
 
     Console.WriteLine();
     Console.WriteLine("Начало сканирования положено.");
-    Console.WriteLine("Нажмите Enter для отмены.");
+    Console.WriteLine("Нажмите Enter для сноса MBR.");
 
     Task<ScanSummary> scanTask = scanner.ScanAsync(options, cts.Token);
 
@@ -41,10 +60,10 @@ static async Task RunAsync()
 
     ScanSummary summary = await scanTask;
 
-    PrintSummary(summary);
+    PrintSummary(summary, maxConcurrency);
 }
 
-static void PrintSummary(ScanSummary summary)
+static void PrintSummary(ScanSummary summary, int maxConcurrency)
 {
     Console.WriteLine();
 
@@ -83,13 +102,31 @@ static void PrintSummary(ScanSummary summary)
     Console.WriteLine("Сканирование завершено.");
     Console.WriteLine();
     Console.WriteLine($"Всего найдено файлов: {summary.MatchedFiles}");
-    Console.WriteLine($"Общий размер: {summary.TotalMatchedBytes} байт");
-    Console.WriteLine($"Время: {summary.Duration.TotalSeconds.ToString("F2", CultureInfo.InvariantCulture)} сек.");
+    Console.WriteLine();
+
+    Console.ForegroundColor = ConsoleColor.Cyan;
+    Console.WriteLine("=== РЕЗУЛЬТАТ СКАНИРОВАНИЯ ===");
+    Console.ResetColor();
+    Console.WriteLine();
+    Console.WriteLine($"Просмотрено файлов: {summary.ScannedFiles}");
+    Console.WriteLine($"Подходящих файлов: {summary.MatchedFiles}");
+
+    //в байтах
+    string total = summary.TotalMatchedBytes < 1024
+        ? $"{summary.TotalMatchedBytes} байт"
+        : $"{summary.TotalMatchedBytes} байт ({FormatSize(summary.TotalMatchedBytes)})";
+
+    Console.WriteLine($"Общий размер: {total}");
+    Console.WriteLine($"Ошибок: {summary.Errors.Count}");
+    Console.WriteLine($"Время выполнения: {summary.Duration.TotalSeconds.ToString("F2", CultureInfo.InvariantCulture)} сек.");
+    Console.WriteLine();
+    Console.WriteLine($"Ограничение: {maxConcurrency}");
+    Console.WriteLine($"Максимум одновременно обрабатываемых файлов: {summary.MaxObservedConcurrency}");
 
     if (summary.Errors.Count > 0)
     {
         Console.WriteLine();
-        Console.WriteLine($"Ошибок: {summary.Errors.Count}");
+        Console.WriteLine("Ошибки:");
 
         foreach (string error in summary.Errors)
             Console.WriteLine($"  {error}");
@@ -154,4 +191,81 @@ static HashSet<string> ReadExtensions()
 
         return new HashSet<string>(parts, StringComparer.OrdinalIgnoreCase);
     }
+}
+
+//размер в КБ, пустая строка = без ограничения
+static long ReadSizeInKb(string prompt, long defaultBytes)
+{
+    while (true)
+    {
+        Console.Write(prompt);
+        string? input = Console.ReadLine();
+
+        if (input is null)
+            throw new InvalidOperationException("Я отменил твой ввод данных.");
+
+        input = input.Trim();
+
+        if (input.Length == 0)
+            return defaultBytes;
+
+        if (long.TryParse(input, NumberStyles.Integer, CultureInfo.InvariantCulture, out long kb)
+            && kb >= 0
+            && kb <= long.MaxValue / 1024)
+        {
+            return kb * 1024;
+        }
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("Мне нужно число КБ, а не вот это вот.");
+        Console.ResetColor();
+    }
+}
+
+//сколько файлов жрём одновременно, Enter = 4
+static int ReadMaxConcurrency()
+{
+    while (true)
+    {
+        Console.Write("СКОЛЬКО ФАЙЛОВ ОДНОВРЕМЕННО ЖРАТЬ (Enter — 4): ");
+        string? input = Console.ReadLine();
+
+        if (input is null)
+            throw new InvalidOperationException("Я отменил твой ввод данных.");
+
+        input = input.Trim();
+
+        if (input.Length == 0)
+            return 4;
+
+        if (int.TryParse(input, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
+            && value >= 1
+            && value <= 64)
+        {
+            return value;
+        }
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("От 1 до 64, я не бессмертный.");
+        Console.ResetColor();
+    }
+}
+
+//байты в КБ/МБ/ГБ, чтоб 13107200 не пугало
+static string FormatSize(long bytes)
+{
+    string[] units = ["байт", "КБ", "МБ", "ГБ", "ТБ"];
+
+    double value = bytes;
+    int unit = 0;
+
+    while (value >= 1024 && unit < units.Length - 1)
+    {
+        value /= 1024;
+        unit++;
+    }
+
+    return unit == 0
+        ? $"{bytes} байт"
+        : $"{value.ToString("0.##", CultureInfo.InvariantCulture)} {units[unit]}";
 }
