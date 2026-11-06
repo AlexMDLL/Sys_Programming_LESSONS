@@ -86,4 +86,18 @@ public class GameEventAnalyzerTests
 
         Assert.Empty(result);
     }
+
+    [Fact]
+    public void Analyze_WithoutKills_ReturnsEmptyResult()
+    {
+        var events = new List<GameEvent>
+        {
+            new(1, 1, "Death", 0, TestDate),
+            new(2, 2, "Loot", 20, TestDate)
+        };
+
+        var result = GameEventAnalyzer.AnalyzeWithPlinq(events);
+
+        Assert.Empty(result);
+    }
 }

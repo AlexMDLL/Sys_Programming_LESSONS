@@ -61,6 +61,15 @@ internal class Program
         var empty = GameEventAnalyzer.AnalyzeWithPlinq([]);
         Console.WriteLine();
         Console.WriteLine($"Пустая коллекция -> записей: {empty.Count}");
+
+        List<GameEvent> withoutKills =
+        [
+            new(1, 1, "Death", 0, DateTime.Now),
+            new(2, 2, "Loot", 20, DateTime.Now)
+        ];
+
+        var noKills = GameEventAnalyzer.AnalyzeWithPlinq(withoutKills);
+        Console.WriteLine($"Без событий Kill -> записей: {noKills.Count}");
     }
 
     private static void RunOrderDemo()
