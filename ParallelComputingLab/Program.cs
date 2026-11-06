@@ -67,6 +67,7 @@ internal class Program
             $"[{Format(numbers)}] -> " +
             $"сумма={sequential.Sum}, " +
             $"количество={sequential.Count}, " +
+            $"максимум={sequential.Max?.ToString() ?? "—"}, " +
             $"совпадает={sequential == parallel}");
     }
 

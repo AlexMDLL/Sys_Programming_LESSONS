@@ -6,14 +6,15 @@ public class CalculatorTests
 {
     // Контрольные сценарии из П1 (числа, кратные 13).
     [Theory]
-    [InlineData(new[] { 13, 26, 40, 39 }, 78, 3)]
-    [InlineData(new[] { 1, 2, 3, 4 }, 0, 0)]
-    [InlineData(new[] { 13, 13, 13 }, 39, 3)]
-    [InlineData(new int[] { }, 0, 0)]
+    [InlineData(new[] { 13, 26, 40, 39 }, 78, 3, 39)]
+    [InlineData(new[] { 1, 2, 3, 4 }, 0, 0, null)]
+    [InlineData(new[] { 13, 13, 13 }, 39, 3, 13)]
+    [InlineData(new int[] { }, 0, 0, null)]
     public void SequentialAndParallel_ReturnSameResult(
         int[] numbers,
         long expectedSum,
-        int expectedCount)
+        int expectedCount,
+        int? expectedMax)
     {
         var sequential =
             Calculator.CalculateSequential(numbers);
@@ -23,6 +24,7 @@ public class CalculatorTests
 
         Assert.Equal(expectedSum, sequential.Sum);
         Assert.Equal(expectedCount, sequential.Count);
+        Assert.Equal(expectedMax, sequential.Max);
 
         // Сравнивает значения record, а не ссылки на объекты.
         Assert.Equal(sequential, parallel);

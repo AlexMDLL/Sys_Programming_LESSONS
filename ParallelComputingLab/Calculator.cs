@@ -11,6 +11,7 @@ public static class Calculator
 
         long sum = 0;
         int count = 0;
+        int? max = null;
 
         foreach (int number in numbers)
         {
@@ -18,10 +19,15 @@ public static class Calculator
             {
                 sum += number;
                 count++;
+
+                if (max is null || number > max)
+                {
+                    max = number;
+                }
             }
         }
 
-        return new CalculationResult(sum, count);
+        return new CalculationResult(sum, count, max);
     }
 
     /// <summary>
@@ -42,6 +48,7 @@ public static class Calculator
 
         long sum = 0;
         int count = 0;
+        int max = 0;
 
         var options = new ParallelOptions
         {
@@ -52,7 +59,7 @@ public static class Calculator
             0,
             numbers.Length,
             options,
-            () => (LocalSum: 0L, LocalCount: 0),
+            () => (LocalSum: 0L, LocalCount: 0, LocalMax: 0),
             (i, state, local) =>
             {
                 int number = numbers[i];
@@ -61,6 +68,11 @@ public static class Calculator
                 {
                     local.LocalSum += number;
                     local.LocalCount++;
+
+                    if (number > local.LocalMax)
+                    {
+                        local.LocalMax = number;
+                    }
                 }
 
                 return local;
@@ -69,9 +81,26 @@ public static class Calculator
             {
                 Interlocked.Add(ref sum, local.LocalSum);
                 Interlocked.Add(ref count, local.LocalCount);
+
+                int current = max;
+
+                while (local.LocalMax > current)
+                {
+                    int previous = Interlocked.CompareExchange(
+                        ref max,
+                        local.LocalMax,
+                        current);
+
+                    if (previous == current)
+                    {
+                        break;
+                    }
+
+                    current = previous;
+                }
             });
 
-        return new CalculationResult(sum, count);
+        return new CalculationResult(sum, count, count == 0 ? null : max);
     }
 
     /// <summary>
@@ -102,6 +131,6 @@ public static class Calculator
             }
         });
 
-        return new CalculationResult(sum, count);
+        return new CalculationResult(sum, count, null);
     }
 }
