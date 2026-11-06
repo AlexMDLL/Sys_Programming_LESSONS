@@ -52,13 +52,16 @@ public static partial class GameEventAnalyzer
             .ToList();
     }
 
-    // TODO 2 (П2): сформируйте ту же ленту с AsOrdered.
     public static List<GameEvent> GetKillsOrdered(
         IEnumerable<GameEvent> events)
     {
         ArgumentNullException.ThrowIfNull(events);
 
-        throw new NotImplementedException("TODO 2 (П2): GetKillsOrdered");
+        return events
+            .AsParallel()
+            .AsOrdered()
+            .Where(e => e.Type == "Kill")
+            .ToList();
     }
 
     // TODO 4 (П2): отсортируйте события Kill по Timestamp.

@@ -137,4 +137,20 @@ public class GameEventAnalyzerTests
         Assert.Equal(3, result.Count);
         Assert.All(result, gameEvent => Assert.Equal("Kill", gameEvent.Type));
     }
+
+    [Fact]
+    public void GetKillsOrdered_PreservesSourceOrder()
+    {
+        var events = new List<GameEvent>
+        {
+            new(1, 1, "Kill", 100, TestDate),
+            new(2, 1, "Death", 0, TestDate),
+            new(3, 2, "Kill", 200, TestDate),
+            new(4, 1, "Kill", 150, TestDate)
+        };
+
+        var result = GameEventAnalyzer.GetKillsOrdered(events);
+
+        Assert.Equal(new[] { 1, 3, 4 }, result.Select(e => e.Id));
+    }
 }
