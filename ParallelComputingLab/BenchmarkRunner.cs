@@ -6,7 +6,7 @@ namespace ParallelComputingLab;
 public static class BenchmarkRunner
 {
     // П2. TODO 3: измените количество измерений с 5 на 10.
-    private const int MeasurementCount = 5;
+    private const int MeasurementCount = 10;
 
     public static void Run(int[] numbers)
     {
