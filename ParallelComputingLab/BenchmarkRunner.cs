@@ -173,13 +173,6 @@ public static class BenchmarkRunner
         Console.WriteLine(
             $"Лучшая степень параллелизма: {bestDegree.Key} " +
             $"(среднее ускорение {bestDegree.Average:F2}x).");
-
-        Console.WriteLine();
-        Console.WriteLine(
-            "Вывод: параллельная обработка быстрее не всегда. На малых объёмах " +
-            "накладные расходы Parallel.For превышают выигрыш, и последовательный " +
-            "цикл остаётся быстрее; на больших массивах ускорение появляется, " +
-            "но не растёт линейно с MaxDegreeOfParallelism.");
     }
 
     public static (CalculationResult Result, double ElapsedMilliseconds)
