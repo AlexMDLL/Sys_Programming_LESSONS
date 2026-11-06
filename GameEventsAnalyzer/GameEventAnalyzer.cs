@@ -76,6 +76,9 @@ public static partial class GameEventAnalyzer
             .AsParallel()
             .Where(e => e.Type == "Kill")
             .OrderBy(e => e.Timestamp)
+            // ThenBy(Id) делает порядок детерминированным: у событий бывают
+            // одинаковые Timestamp (генератор выдаёт такие пары), и без
+            // вторичного ключа их взаимный порядок в результате не определён.
             .ThenBy(e => e.Id)
             .ToList();
     }
