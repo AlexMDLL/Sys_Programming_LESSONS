@@ -36,6 +36,8 @@ internal class Program
             10_000_000
         ];
 
+        var rows = new List<(int Size, double Sequential, List<(int Degree, double Median)> Variants)>();
+
         foreach (int size in sizes)
         {
             int[] numbers = DataGenerator.Generate(
@@ -43,10 +45,14 @@ internal class Program
                 seed: 12345);
 
             BenchmarkRunner.Run(numbers);
-            BenchmarkRunner.CompareParallelism(numbers);
+
+            var comparison = BenchmarkRunner.CompareParallelism(numbers);
+            rows.Add((size, comparison.Sequential, comparison.Variants));
 
             Console.WriteLine();
         }
+
+        BenchmarkRunner.PrintSummary(rows);
     }
 
     private static void DemonstrateControlScenarios()

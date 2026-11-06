@@ -115,6 +115,47 @@ public static class BenchmarkRunner
         return (sequentialMedian, variants);
     }
 
+    public static void PrintSummary(
+        List<(int Size, double Sequential, List<(int Degree, double Median)> Variants)> rows)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+
+        Console.WriteLine();
+        Console.WriteLine("=== Итоговая таблица (медиана, мс) ===");
+        Console.WriteLine("Размер     | Последовательно | Deg 1 | Deg 2 | Deg 3 | Deg 4 | Default");
+        Console.WriteLine("---------------------------------------------------------------------");
+
+        foreach (var row in rows)
+        {
+            Console.Write($"{row.Size,10:N0} | {row.Sequential,15:F3}");
+
+            foreach (var variant in row.Variants)
+            {
+                Console.Write($" | {variant.Median,5:F3}");
+            }
+
+            Console.WriteLine();
+        }
+
+        int? firstFaster = null;
+
+        foreach (var row in rows)
+        {
+            double best = row.Variants.Min(v => v.Median);
+
+            if (best < row.Sequential)
+            {
+                firstFaster ??= row.Size;
+            }
+        }
+
+        Console.WriteLine();
+        Console.WriteLine(
+            firstFaster is null
+                ? "Параллельная обработка не стала быстрее ни на одном размере."
+                : $"Параллельная обработка быстрее последовательной начиная с размера {firstFaster:N0}.");
+    }
+
     public static (CalculationResult Result, double ElapsedMilliseconds)
         Measure(Func<CalculationResult> action)
     {
