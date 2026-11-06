@@ -2,8 +2,6 @@ namespace GameEventsAnalyzer;
 
 public static partial class GameEventAnalyzer
 {
-    // TODO 3 (П1): отсортируйте игроков по сумме очков по убыванию.
-    // TODO 4 (П1): добавьте ThenBy по PlayerId для стабильного порядка.
     public static List<PlayerStatistics> AnalyzeWithLinq(
         IEnumerable<GameEvent> events)
     {
@@ -17,6 +15,7 @@ public static partial class GameEventAnalyzer
                 KillCount: group.Count(),
                 TotalPoints: group.Sum(e => (long)e.Points)))
             .OrderByDescending(x => x.TotalPoints)
+            .ThenBy(x => x.PlayerId)
             .ToList();
     }
 
@@ -35,6 +34,7 @@ public static partial class GameEventAnalyzer
                 KillCount: group.Count(),
                 TotalPoints: group.Sum(e => (long)e.Points)))
             .OrderByDescending(x => x.TotalPoints)
+            .ThenBy(x => x.PlayerId)
             .ToList();
     }
 }

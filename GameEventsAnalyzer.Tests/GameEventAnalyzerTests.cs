@@ -50,4 +50,21 @@ public class GameEventAnalyzerTests
 
         Assert.Equal(new[] { 1, 2, 3 }, result.Select(x => x.PlayerId));
     }
+
+    [Fact]
+    public void Statistics_WithEqualPoints_AreOrderedByPlayerId()
+    {
+        var events = new List<GameEvent>
+        {
+            new(1, 5, "Kill", 100, TestDate),
+            new(2, 2, "Kill", 100, TestDate),
+            new(3, 9, "Kill", 100, TestDate)
+        };
+
+        var linq = GameEventAnalyzer.AnalyzeWithLinq(events);
+        var plinq = GameEventAnalyzer.AnalyzeWithPlinq(events);
+
+        Assert.Equal(new[] { 2, 5, 9 }, linq.Select(x => x.PlayerId));
+        Assert.Equal(linq, plinq);
+    }
 }
