@@ -16,6 +16,7 @@ public static partial class GameEventAnalyzer
                 PlayerId: group.Key,
                 KillCount: group.Count(),
                 TotalPoints: group.Sum(e => (long)e.Points)))
+            .OrderByDescending(x => x.TotalPoints)
             .ToList();
     }
 
@@ -33,6 +34,7 @@ public static partial class GameEventAnalyzer
                 PlayerId: group.Key,
                 KillCount: group.Count(),
                 TotalPoints: group.Sum(e => (long)e.Points)))
+            .OrderByDescending(x => x.TotalPoints)
             .ToList();
     }
 }

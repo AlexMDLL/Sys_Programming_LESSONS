@@ -35,4 +35,19 @@ public class GameEventAnalyzerTests
 
         Assert.Equal(linq, plinq);
     }
+
+    [Fact]
+    public void Statistics_AreSortedByPointsDescending()
+    {
+        var events = new List<GameEvent>
+        {
+            new(1, 3, "Kill", 100, TestDate),
+            new(2, 1, "Kill", 300, TestDate),
+            new(3, 2, "Kill", 250, TestDate)
+        };
+
+        var result = GameEventAnalyzer.AnalyzeWithPlinq(events);
+
+        Assert.Equal(new[] { 1, 2, 3 }, result.Select(x => x.PlayerId));
+    }
 }
