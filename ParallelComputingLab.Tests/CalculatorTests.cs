@@ -10,6 +10,7 @@ public class CalculatorTests
     [InlineData(new[] { 1, 2, 3, 4 }, 0, 0, null)]
     [InlineData(new[] { 13, 13, 13 }, 39, 3, 13)]
     [InlineData(new int[] { }, 0, 0, null)]
+    [InlineData(new[] { 26 }, 26, 1, 26)]
     public void SequentialAndParallel_ReturnSameResult(
         int[] numbers,
         long expectedSum,
