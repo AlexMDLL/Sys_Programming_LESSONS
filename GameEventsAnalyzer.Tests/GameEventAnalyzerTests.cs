@@ -195,4 +195,24 @@ public class GameEventAnalyzerTests
 
         Assert.Equal(new[] { 1, 2, 3 }, result.Select(e => e.Id));
     }
+
+    [Fact]
+    public void Sorted_WithAndWithoutAsOrdered_ReturnSameOrder()
+    {
+        var events = GameEventGenerator.Generate(10_000, seed: 12345);
+
+        var withoutAsOrdered = GameEventAnalyzer.GetKillsSortedByTime(events);
+
+        var withAsOrdered = events
+            .AsParallel()
+            .AsOrdered()
+            .Where(e => e.Type == "Kill")
+            .OrderBy(e => e.Timestamp)
+            .ThenBy(e => e.Id)
+            .ToList();
+
+        Assert.Equal(
+            withoutAsOrdered.Select(e => e.Id),
+            withAsOrdered.Select(e => e.Id));
+    }
 }

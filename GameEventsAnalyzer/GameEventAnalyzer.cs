@@ -69,7 +69,9 @@ public static partial class GameEventAnalyzer
     {
         ArgumentNullException.ThrowIfNull(events);
 
-        // AsOrdered() здесь не нужен: порядок задаётся явной сортировкой.
+        // AsOrdered() здесь не нужен: порядок задаёт явная сортировка.
+        // Проверено: добавление AsOrdered() к запросу с OrderBy не меняет
+        // итоговый порядок (см. тест Sorted_WithAndWithoutAsOrdered_ReturnSameOrder).
         return events
             .AsParallel()
             .Where(e => e.Type == "Kill")
