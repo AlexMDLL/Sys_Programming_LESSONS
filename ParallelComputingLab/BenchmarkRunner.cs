@@ -154,6 +154,18 @@ public static class BenchmarkRunner
             firstFaster is null
                 ? "Параллельная обработка не стала быстрее ни на одном размере."
                 : $"Параллельная обработка быстрее последовательной начиная с размера {firstFaster:N0}.");
+
+        var bestDegree = rows
+            .SelectMany(row => row.Variants.Select(
+                variant => (variant.Degree, Speedup: row.Sequential / variant.Median)))
+            .GroupBy(x => x.Degree)
+            .Select(group => (group.Key, Average: group.Average(x => x.Speedup)))
+            .OrderByDescending(x => x.Average)
+            .First();
+
+        Console.WriteLine(
+            $"Лучшая степень параллелизма: {bestDegree.Key} " +
+            $"(среднее ускорение {bestDegree.Average:F2}x).");
     }
 
     public static (CalculationResult Result, double ElapsedMilliseconds)
