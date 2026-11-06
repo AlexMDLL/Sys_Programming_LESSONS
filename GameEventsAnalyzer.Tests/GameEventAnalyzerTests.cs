@@ -48,7 +48,7 @@ public class GameEventAnalyzerTests
 
         var result = GameEventAnalyzer.AnalyzeWithPlinq(events);
 
-        Assert.Equal(new[] { 1, 2, 3 }, result.Select(x => x.PlayerId));
+        Assert.Equal([1, 2, 3], result.Select(x => x.PlayerId));
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class GameEventAnalyzerTests
         var linq = GameEventAnalyzer.AnalyzeWithLinq(events);
         var plinq = GameEventAnalyzer.AnalyzeWithPlinq(events);
 
-        Assert.Equal(new[] { 2, 5, 9 }, linq.Select(x => x.PlayerId));
+        Assert.Equal([2, 5, 9], linq.Select(x => x.PlayerId));
         Assert.Equal(linq, plinq);
     }
 
@@ -151,7 +151,7 @@ public class GameEventAnalyzerTests
 
         var result = GameEventAnalyzer.GetKillsOrdered(events);
 
-        Assert.Equal(new[] { 1, 3, 4 }, result.Select(e => e.Id));
+        Assert.Equal([1, 3, 4], result.Select(e => e.Id));
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public class GameEventAnalyzerTests
 
         var result = GameEventAnalyzer.GetKillsSortedByTime(events);
 
-        Assert.Equal(new[] { 2, 3, 1 }, result.Select(e => e.Id));
+        Assert.Equal([2, 3, 1], result.Select(e => e.Id));
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class GameEventAnalyzerTests
 
         var result = GameEventAnalyzer.GetKillsSortedByTime(events);
 
-        Assert.Equal(new[] { 1, 2, 3 }, result.Select(e => e.Id));
+        Assert.Equal([1, 2, 3], result.Select(e => e.Id));
     }
 
     [Fact]
