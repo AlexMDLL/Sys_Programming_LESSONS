@@ -180,4 +180,19 @@ public class GameEventAnalyzerTests
 
         Assert.Equal(new[] { 2, 3, 1 }, result.Select(e => e.Id));
     }
+
+    [Fact]
+    public void GetKillsSortedByTime_WithEqualTimestamps_SortsById()
+    {
+        var events = new List<GameEvent>
+        {
+            new(3, 1, "Kill", 100, TestDate),
+            new(1, 1, "Kill", 100, TestDate),
+            new(2, 1, "Kill", 100, TestDate)
+        };
+
+        var result = GameEventAnalyzer.GetKillsSortedByTime(events);
+
+        Assert.Equal(new[] { 1, 2, 3 }, result.Select(e => e.Id));
+    }
 }

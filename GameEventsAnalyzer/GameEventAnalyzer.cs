@@ -74,6 +74,7 @@ public static partial class GameEventAnalyzer
             .AsParallel()
             .Where(e => e.Type == "Kill")
             .OrderBy(e => e.Timestamp)
+            .ThenBy(e => e.Id)
             .ToList();
     }
 }
