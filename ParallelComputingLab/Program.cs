@@ -57,6 +57,7 @@ internal class Program
         ShowScenario([1, 2, 3, 4]);
         ShowScenario([13, 13, 13]);
         ShowScenario([26]);
+        ShowScenario([]);
     }
 
     private static void ShowScenario(int[] numbers)
