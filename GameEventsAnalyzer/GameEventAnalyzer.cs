@@ -7,7 +7,7 @@ public static partial class GameEventAnalyzer
     {
         ArgumentNullException.ThrowIfNull(events);
 
-        return events
+        return [.. events
             .Where(e => e.Type == "Kill")
             .GroupBy(e => e.PlayerId)
             .Select(group => new PlayerStatistics(
@@ -15,8 +15,7 @@ public static partial class GameEventAnalyzer
                 KillCount: group.Count(),
                 TotalPoints: group.Sum(e => (long)e.Points)))
             .OrderByDescending(x => x.TotalPoints)
-            .ThenBy(x => x.PlayerId)
-            .ToList();
+            .ThenBy(x => x.PlayerId)];
     }
 
     // TODO 2 (П1): реализуйте тот же анализ через PLINQ (AsParallel).

@@ -11,10 +11,7 @@ public static class BenchmarkRunner
     {
         ArgumentNullException.ThrowIfNull(events);
 
-        if (repetitions < 1)
-        {
-            throw new ArgumentOutOfRangeException(nameof(repetitions));
-        }
+        ArgumentOutOfRangeException.ThrowIfLessThan(repetitions, 1);
 
         // Прогрев.
         GameEventAnalyzer.AnalyzeWithLinq(events);
@@ -51,10 +48,7 @@ public static class BenchmarkRunner
     {
         ArgumentNullException.ThrowIfNull(events);
 
-        if (repetitions < 1)
-        {
-            throw new ArgumentOutOfRangeException(nameof(repetitions));
-        }
+        ArgumentOutOfRangeException.ThrowIfLessThan(repetitions, 1);
 
         // Прогрев.
         GameEventAnalyzer.GetKillsUnordered(events);
