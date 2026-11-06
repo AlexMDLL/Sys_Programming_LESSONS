@@ -39,7 +39,9 @@ public static class GameEventGenerator
                 PlayerId: random.Next(1, 101),
                 Type: type,
                 Points: points,
-                Timestamp: start.AddSeconds(i)));
+                // Каждые два события получают одинаковое время:
+                // так проверяется устойчивость сортировки по вторичному ключу.
+                Timestamp: start.AddSeconds(i / 2)));
         }
 
         return events;
