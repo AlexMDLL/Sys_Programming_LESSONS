@@ -153,4 +153,16 @@ public class GameEventAnalyzerTests
 
         Assert.Equal(new[] { 1, 3, 4 }, result.Select(e => e.Id));
     }
+
+    [Fact]
+    public void GetKillsOrdered_OnGeneratedData_ReturnsAscendingIds()
+    {
+        var events = GameEventGenerator.Generate(10_000, seed: 12345);
+
+        var result = GameEventAnalyzer.GetKillsOrdered(events);
+
+        Assert.True(result
+            .Select(e => e.Id)
+            .SequenceEqual(result.Select(e => e.Id).OrderBy(id => id)));
+    }
 }

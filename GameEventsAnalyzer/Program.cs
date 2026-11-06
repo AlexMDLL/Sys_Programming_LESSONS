@@ -110,8 +110,16 @@ internal class Program
         Console.WriteLine($"Kill с AsOrdered:      {ordered.Count}");
         Console.WriteLine($"Kill после сортировки: {sorted.Count}");
 
-        // TODO 3 (П2): проверьте, сохраняется ли исходный порядок
-        // в варианте с AsOrdered.
+        bool isOrdered = ordered
+            .Select(e => e.Id)
+            .SequenceEqual(ordered.Select(e => e.Id).OrderBy(id => id));
+
+        bool unorderedIsOrdered = unordered
+            .Select(e => e.Id)
+            .SequenceEqual(unordered.Select(e => e.Id).OrderBy(id => id));
+
+        Console.WriteLine($"Исходный порядок сохранён (AsOrdered): {isOrdered}");
+        Console.WriteLine($"Без AsOrdered порядок совпал случайно: {unorderedIsOrdered}");
 
         Console.WriteLine();
         Console.WriteLine("Первые 10 событий с сохранением исходного порядка:");
