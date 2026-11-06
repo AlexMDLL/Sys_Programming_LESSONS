@@ -58,6 +58,24 @@ internal class Program
         ShowScenario([13, 13, 13]);
         ShowScenario([26]);
         ShowScenario([]);
+        ShowNullCheck();
+    }
+
+    private static void ShowNullCheck()
+    {
+        Console.WriteLine();
+        Console.WriteLine("=== Проверка null ===");
+
+        try
+        {
+            Calculator.CalculateParallel(null!);
+            Console.WriteLine("Ожидалось ArgumentNullException, но исключения не было.");
+        }
+        catch (ArgumentNullException ex)
+        {
+            Console.WriteLine(
+                $"Исключение: {ex.GetType().Name}, параметр: {ex.ParamName}");
+        }
     }
 
     private static void ShowScenario(int[] numbers)
