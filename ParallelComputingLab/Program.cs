@@ -26,7 +26,6 @@ internal class Program
 
     private static void RunBenchmarks()
     {
-        // П2. TODO 1: добавьте размер массива 10_000_000.
         int[] sizes =
         [
             10_000,

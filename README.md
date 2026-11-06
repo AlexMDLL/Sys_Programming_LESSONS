@@ -24,12 +24,13 @@ ParallelComputingLab/
 Запуск:
 
 ```
-dotnet run --project ParallelComputingLab
+dotnet run --project ParallelComputingLab            # всё: проверки + бенчмарки
+dotnet run --project ParallelComputingLab -- checks  # контрольные сценарии П1
+dotnet run --project ParallelComputingLab -- bench   # измерения П2
 dotnet test
 ```
 
-Пока `Calculator` не реализован, обе команды падают с `NotImplementedException` — это ожидаемо.
-Тесты должны проходить после выполнения П1.
+Результаты двух прогонов измерений — в `RESULTS.md`.
 
 ## П1. Одинаковый результат двумя способами
 

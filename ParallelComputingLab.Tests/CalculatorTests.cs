@@ -31,8 +31,8 @@ public class CalculatorTests
         Assert.Equal(sequential, parallel);
     }
 
-    // П1. TODO 5: объясните, какое исключение должно возникнуть,
-    // и почему проверка стоит в начале метода.
+    // null отклоняется сразу в начале метода, поэтому возникает
+    // ArgumentNullException, а не NullReferenceException внутри Parallel.For.
     [Fact]
     public void Parallel_WithNull_ThrowsException()
     {

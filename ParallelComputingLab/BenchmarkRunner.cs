@@ -5,7 +5,7 @@ namespace ParallelComputingLab;
 // Класс проводит измерения и выводит медианное время.
 public static class BenchmarkRunner
 {
-    // П2. TODO 3: измените количество измерений с 5 на 10.
+    // Количество измерений для каждой серии.
     private const int MeasurementCount = 10;
 
     public static void Run(int[] numbers)
@@ -59,7 +59,6 @@ public static class BenchmarkRunner
     {
         ArgumentNullException.ThrowIfNull(numbers);
 
-        // П2. TODO 2: добавьте степень параллелизма 3.
         // -1 означает "значение по умолчанию, без явного ограничения".
         int[] degrees = [1, 2, 3, 4, -1];
 
@@ -174,6 +173,13 @@ public static class BenchmarkRunner
         Console.WriteLine(
             $"Лучшая степень параллелизма: {bestDegree.Key} " +
             $"(среднее ускорение {bestDegree.Average:F2}x).");
+
+        Console.WriteLine();
+        Console.WriteLine(
+            "Вывод: параллельная обработка быстрее не всегда. На малых объёмах " +
+            "накладные расходы Parallel.For превышают выигрыш, и последовательный " +
+            "цикл остаётся быстрее; на больших массивах ускорение появляется, " +
+            "но не растёт линейно с MaxDegreeOfParallelism.");
     }
 
     public static (CalculationResult Result, double ElapsedMilliseconds)
