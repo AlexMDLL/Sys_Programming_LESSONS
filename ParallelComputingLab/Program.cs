@@ -59,6 +59,26 @@ internal class Program
         ShowScenario([26]);
         ShowScenario([]);
         ShowNullCheck();
+        ShowWrongSum();
+    }
+
+    private static void ShowWrongSum()
+    {
+        int[] numbers = DataGenerator.Generate(
+            5_000_000,
+            seed: 12345);
+
+        var correct = Calculator.CalculateSequential(numbers);
+        var wrong = Calculator.CalculateParallelWrong(numbers);
+
+        Console.WriteLine();
+        Console.WriteLine("=== Lost update на 5 000 000 элементов ===");
+        Console.WriteLine(
+            $"Правильно: сумма={correct.Sum}, количество={correct.Count}");
+        Console.WriteLine(
+            $"С гонкой:  сумма={wrong.Sum}, количество={wrong.Count}");
+        Console.WriteLine(
+            $"Потеряно обновлений: {correct.Count - wrong.Count}");
     }
 
     private static void ShowNullCheck()
