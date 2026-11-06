@@ -60,7 +60,7 @@ public static class BenchmarkRunner
 
         // П2. TODO 2: добавьте степень параллелизма 3.
         // -1 означает "значение по умолчанию, без явного ограничения".
-        int[] degrees = [1, 2, 4, -1];
+        int[] degrees = [1, 2, 3, 4, -1];
 
         Console.WriteLine();
         Console.WriteLine($"Размер массива: {numbers.Length:N0}");
