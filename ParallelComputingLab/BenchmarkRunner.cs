@@ -54,7 +54,8 @@ public static class BenchmarkRunner
             $"Параллельно:     {Median(parallelTimes):F3} мс");
     }
 
-    public static void CompareParallelism(int[] numbers)
+    public static (double Sequential, List<(int Degree, double Median)> Variants)
+        CompareParallelism(int[] numbers)
     {
         ArgumentNullException.ThrowIfNull(numbers);
 
@@ -64,8 +65,8 @@ public static class BenchmarkRunner
 
         Console.WriteLine();
         Console.WriteLine($"Размер массива: {numbers.Length:N0}");
-        Console.WriteLine("Степень параллелизма | Время, мс");
-        Console.WriteLine("--------------------------------");
+        Console.WriteLine("Степень параллелизма | Время, мс | Ускорение");
+        Console.WriteLine("--------------------------------------------");
 
         // Прогрев.
         Calculator.CalculateSequential(numbers);
@@ -75,25 +76,43 @@ public static class BenchmarkRunner
             Calculator.CalculateParallel(numbers, degree);
         }
 
+        var sequentialTimes = new List<double>();
+
+        for (int i = 0; i < MeasurementCount; i++)
+        {
+            var (_, ElapsedMilliseconds) = Measure(
+                () => Calculator.CalculateSequential(numbers));
+
+            sequentialTimes.Add(ElapsedMilliseconds);
+        }
+
+        double sequentialMedian = Median(sequentialTimes);
+        var variants = new List<(int Degree, double Median)>();
+
         foreach (int degree in degrees)
         {
             var times = new List<double>();
 
             for (int i = 0; i < MeasurementCount; i++)
             {
-                var (Result, ElapsedMilliseconds) = Measure(
+                var (_, ElapsedMilliseconds) = Measure(
                     () => Calculator.CalculateParallel(numbers, degree));
 
                 times.Add(ElapsedMilliseconds);
             }
+
+            double median = Median(times);
+            variants.Add((degree, median));
 
             // П2. TODO 4: добавьте в таблицу ускорение:
             // время последовательной обработки / время параллельной.
             // П2. TODO 9: добавьте проверку совпадения результата
             // для каждого измеряемого варианта.
             Console.WriteLine(
-                $"{degree,20} | {Median(times),10:F3}");
+                $"{degree,20} | {median,10:F3} | {sequentialMedian / median,8:F2}x");
         }
+
+        return (sequentialMedian, variants);
     }
 
     public static (CalculationResult Result, double ElapsedMilliseconds)
