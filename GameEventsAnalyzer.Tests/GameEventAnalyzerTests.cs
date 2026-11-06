@@ -100,4 +100,20 @@ public class GameEventAnalyzerTests
 
         Assert.Empty(result);
     }
+
+    [Fact]
+    public void Analyze_AllKillsOfOnePlayer_ReturnsSingleRecord()
+    {
+        var events = new List<GameEvent>
+        {
+            new(1, 7, "Kill", 100, TestDate),
+            new(2, 7, "Kill", 50, TestDate),
+            new(3, 7, "Death", 0, TestDate)
+        };
+
+        var result = GameEventAnalyzer.AnalyzeWithPlinq(events);
+
+        Assert.Single(result);
+        Assert.Equal(new PlayerStatistics(7, 2, 150), result[0]);
+    }
 }

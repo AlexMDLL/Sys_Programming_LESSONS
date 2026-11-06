@@ -70,6 +70,18 @@ internal class Program
 
         var noKills = GameEventAnalyzer.AnalyzeWithPlinq(withoutKills);
         Console.WriteLine($"Без событий Kill -> записей: {noKills.Count}");
+
+        List<GameEvent> singlePlayer =
+        [
+            new(1, 7, "Kill", 100, DateTime.Now),
+            new(2, 7, "Kill", 50, DateTime.Now),
+            new(3, 7, "Death", 0, DateTime.Now)
+        ];
+
+        var single = GameEventAnalyzer.AnalyzeWithPlinq(singlePlayer);
+        Console.WriteLine(
+            $"Все события одного игрока -> записей: {single.Count}, " +
+            $"очков: {single[0].TotalPoints}");
     }
 
     private static void RunOrderDemo()
