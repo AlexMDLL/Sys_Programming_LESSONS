@@ -5,10 +5,7 @@ public static class DataGenerator
 {
     public static int[] Generate(int size, int seed = 12345)
     {
-        if (size < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(size));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(size);
 
         // Фиксированный seed нужен для того, чтобы при каждом запуске
         // получать одинаковые данные и сравнивать реализации

@@ -29,19 +29,19 @@ public static class BenchmarkRunner
             var sequential = Measure(
                 () => Calculator.CalculateSequential(numbers));
 
-            var parallel = Measure(
+            var (Result, ElapsedMilliseconds) = Measure(
                 () => Calculator.CalculateParallel(numbers));
 
             expectedResult ??= sequential.Result;
 
-            if (sequential.Result != parallel.Result)
+            if (sequential.Result != Result)
             {
                 throw new InvalidOperationException(
                     "Последовательный и параллельный результаты не совпадают.");
             }
 
             sequentialTimes.Add(sequential.ElapsedMilliseconds);
-            parallelTimes.Add(parallel.ElapsedMilliseconds);
+            parallelTimes.Add(ElapsedMilliseconds);
         }
 
         Console.WriteLine(
@@ -60,7 +60,7 @@ public static class BenchmarkRunner
 
         // П2. TODO 2: добавьте степень параллелизма 3.
         // -1 означает "значение по умолчанию, без явного ограничения".
-        int[] degrees = { 1, 2, 4, -1 };
+        int[] degrees = [1, 2, 4, -1];
 
         Console.WriteLine();
         Console.WriteLine($"Размер массива: {numbers.Length:N0}");
@@ -81,10 +81,10 @@ public static class BenchmarkRunner
 
             for (int i = 0; i < MeasurementCount; i++)
             {
-                var measurement = Measure(
+                var (Result, ElapsedMilliseconds) = Measure(
                     () => Calculator.CalculateParallel(numbers, degree));
 
-                times.Add(measurement.ElapsedMilliseconds);
+                times.Add(ElapsedMilliseconds);
             }
 
             // П2. TODO 4: добавьте в таблицу ускорение:
@@ -107,7 +107,7 @@ public static class BenchmarkRunner
 
     private static double Median(List<double> values)
     {
-        double[] sorted = values.OrderBy(x => x).ToArray();
+        double[] sorted = [.. values.OrderBy(x => x)];
         int middle = sorted.Length / 2;
 
         if (sorted.Length % 2 == 1)

@@ -42,7 +42,7 @@ public class CalculatorTests
     [Fact]
     public void Parallel_WithInvalidDegree_ThrowsException()
     {
-        int[] numbers = { 7, 14, 21 };
+        int[] numbers = [7, 14, 21];
 
         Assert.Throws<ArgumentOutOfRangeException>(
             () => Calculator.CalculateParallel(numbers, 0));

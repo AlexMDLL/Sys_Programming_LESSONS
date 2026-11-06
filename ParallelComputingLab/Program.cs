@@ -8,12 +8,12 @@ internal class Program
 
         // П2. TODO 1: добавьте размер массива 10_000_000.
         int[] sizes =
-        {
+        [
             10_000,
             100_000,
             1_000_000,
             5_000_000
-        };
+        ];
 
         foreach (int size in sizes)
         {
