@@ -2,9 +2,6 @@ namespace GameEventsAnalyzer;
 
 public static partial class GameEventAnalyzer
 {
-    // TODO 1 (П1): реализуйте анализ через LINQ.
-    // Отберите события Kill, сгруппируйте по PlayerId,
-    // посчитайте количество убийств и сумму очков.
     // TODO 3 (П1): отсортируйте игроков по сумме очков по убыванию.
     // TODO 4 (П1): добавьте ThenBy по PlayerId для стабильного порядка.
     public static List<PlayerStatistics> AnalyzeWithLinq(
@@ -12,7 +9,14 @@ public static partial class GameEventAnalyzer
     {
         ArgumentNullException.ThrowIfNull(events);
 
-        throw new NotImplementedException("TODO 1 (П1): AnalyzeWithLinq");
+        return events
+            .Where(e => e.Type == "Kill")
+            .GroupBy(e => e.PlayerId)
+            .Select(group => new PlayerStatistics(
+                PlayerId: group.Key,
+                KillCount: group.Count(),
+                TotalPoints: group.Sum(e => (long)e.Points)))
+            .ToList();
     }
 
     // TODO 2 (П1): реализуйте тот же анализ через PLINQ (AsParallel).
