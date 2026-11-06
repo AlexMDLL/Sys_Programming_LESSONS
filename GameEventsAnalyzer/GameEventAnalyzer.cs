@@ -64,13 +64,16 @@ public static partial class GameEventAnalyzer
             .ToList();
     }
 
-    // TODO 4 (П2): отсортируйте события Kill по Timestamp.
-    // TODO 5 (П2): добавьте ThenBy по Id.
     public static List<GameEvent> GetKillsSortedByTime(
         IEnumerable<GameEvent> events)
     {
         ArgumentNullException.ThrowIfNull(events);
 
-        throw new NotImplementedException("TODO 4 (П2): GetKillsSortedByTime");
+        // AsOrdered() здесь не нужен: порядок задаётся явной сортировкой.
+        return events
+            .AsParallel()
+            .Where(e => e.Type == "Kill")
+            .OrderBy(e => e.Timestamp)
+            .ToList();
     }
 }

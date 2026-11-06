@@ -165,4 +165,19 @@ public class GameEventAnalyzerTests
             .Select(e => e.Id)
             .SequenceEqual(result.Select(e => e.Id).OrderBy(id => id)));
     }
+
+    [Fact]
+    public void GetKillsSortedByTime_SortsEvents()
+    {
+        var events = new List<GameEvent>
+        {
+            new(1, 1, "Kill", 100, TestDate.AddMinutes(5)),
+            new(2, 1, "Kill", 150, TestDate.AddMinutes(1)),
+            new(3, 2, "Kill", 200, TestDate.AddMinutes(3))
+        };
+
+        var result = GameEventAnalyzer.GetKillsSortedByTime(events);
+
+        Assert.Equal(new[] { 2, 3, 1 }, result.Select(e => e.Id));
+    }
 }
