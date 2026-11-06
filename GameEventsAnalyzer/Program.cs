@@ -57,6 +57,10 @@ internal class Program
                 $"убийств {player.KillCount}, " +
                 $"очков {player.TotalPoints}");
         }
+
+        var empty = GameEventAnalyzer.AnalyzeWithPlinq([]);
+        Console.WriteLine();
+        Console.WriteLine($"Пустая коллекция -> записей: {empty.Count}");
     }
 
     private static void RunOrderDemo()

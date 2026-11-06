@@ -78,4 +78,12 @@ public class GameEventAnalyzerTests
 
         Assert.True(linq.SequenceEqual(plinq));
     }
+
+    [Fact]
+    public void Analyze_EmptyCollection_ReturnsEmptyResult()
+    {
+        var result = GameEventAnalyzer.AnalyzeWithPlinq([]);
+
+        Assert.Empty(result);
+    }
 }
