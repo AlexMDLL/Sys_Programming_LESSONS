@@ -25,7 +25,15 @@ public static partial class GameEventAnalyzer
     {
         ArgumentNullException.ThrowIfNull(events);
 
-        throw new NotImplementedException("TODO 2 (П1): AnalyzeWithPlinq");
+        return events
+            .AsParallel()
+            .Where(e => e.Type == "Kill")
+            .GroupBy(e => e.PlayerId)
+            .Select(group => new PlayerStatistics(
+                PlayerId: group.Key,
+                KillCount: group.Count(),
+                TotalPoints: group.Sum(e => (long)e.Points)))
+            .ToList();
     }
 }
 

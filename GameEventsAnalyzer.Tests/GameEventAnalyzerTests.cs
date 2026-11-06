@@ -24,4 +24,15 @@ public class GameEventAnalyzerTests
         Assert.Equal(new PlayerStatistics(1, 2, 250), result[0]);
         Assert.Equal(new PlayerStatistics(2, 1, 200), result[1]);
     }
+
+    [Fact]
+    public void Plinq_ReturnsSameStatisticsAsLinq()
+    {
+        var events = CreateEvents();
+
+        var linq = GameEventAnalyzer.AnalyzeWithLinq(events);
+        var plinq = GameEventAnalyzer.AnalyzeWithPlinq(events);
+
+        Assert.Equal(linq, plinq);
+    }
 }
