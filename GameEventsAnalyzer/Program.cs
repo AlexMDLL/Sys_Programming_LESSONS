@@ -44,8 +44,11 @@ internal class Program
         Console.WriteLine("=== Контрольные сценарии ===");
 
         var linq = GameEventAnalyzer.AnalyzeWithLinq(events);
+        var plinq = GameEventAnalyzer.AnalyzeWithPlinq(events);
 
-        // TODO 5 (П1): сравните результаты LINQ и PLINQ через SequenceEqual.
+        bool same = linq.SequenceEqual(plinq);
+        Console.WriteLine($"Результаты LINQ и PLINQ совпадают: {same}");
+        Console.WriteLine();
 
         foreach (var player in linq)
         {

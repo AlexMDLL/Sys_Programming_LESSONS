@@ -67,4 +67,15 @@ public class GameEventAnalyzerTests
         Assert.Equal(new[] { 2, 5, 9 }, linq.Select(x => x.PlayerId));
         Assert.Equal(linq, plinq);
     }
+
+    [Fact]
+    public void LinqAndPlinq_OnGeneratedData_AreSequenceEqual()
+    {
+        var events = GameEventGenerator.Generate(10_000, seed: 12345);
+
+        var linq = GameEventAnalyzer.AnalyzeWithLinq(events);
+        var plinq = GameEventAnalyzer.AnalyzeWithPlinq(events);
+
+        Assert.True(linq.SequenceEqual(plinq));
+    }
 }
