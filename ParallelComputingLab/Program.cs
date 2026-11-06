@@ -32,7 +32,8 @@ internal class Program
             10_000,
             100_000,
             1_000_000,
-            5_000_000
+            5_000_000,
+            10_000_000
         ];
 
         foreach (int size in sizes)
