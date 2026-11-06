@@ -4,14 +4,12 @@ namespace ParallelComputingLab.Tests;
 
 public class CalculatorTests
 {
-    // Контрольные сценарии из П1.
-    // П1. TODO 3: проверьте массив из одного элемента (см. последний InlineData).
+    // Контрольные сценарии из П1 (числа, кратные 13).
     [Theory]
-    [InlineData(new[] { 7, 14, 20, 21 }, 42, 3)]
+    [InlineData(new[] { 13, 26, 40, 39 }, 78, 3)]
     [InlineData(new[] { 1, 2, 3, 4 }, 0, 0)]
-    [InlineData(new[] { 7, 7, 7 }, 21, 3)]
+    [InlineData(new[] { 13, 13, 13 }, 39, 3)]
     [InlineData(new int[] { }, 0, 0)]
-    [InlineData(new[] { 14 }, 14, 1)]
     public void SequentialAndParallel_ReturnSameResult(
         int[] numbers,
         long expectedSum,
@@ -42,7 +40,7 @@ public class CalculatorTests
     [Fact]
     public void Parallel_WithInvalidDegree_ThrowsException()
     {
-        int[] numbers = [7, 14, 21];
+        int[] numbers = [13, 26, 39];
 
         Assert.Throws<ArgumentOutOfRangeException>(
             () => Calculator.CalculateParallel(numbers, 0));

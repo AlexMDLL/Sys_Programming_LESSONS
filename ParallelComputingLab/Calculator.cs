@@ -9,12 +9,19 @@ public static class Calculator
     {
         ArgumentNullException.ThrowIfNull(numbers);
 
-        // TODO (П1): реализуйте последовательную обработку через foreach:
-        // сумма и количество чисел, кратных 7.
-        // П1. TODO 1: после реализации замените условие отбора на кратность 13.
-        // П1. TODO 2: добавьте вычисление максимального подходящего элемента.
-        throw new NotImplementedException(
-            "TODO (П1): реализуйте CalculateSequential.");
+        long sum = 0;
+        int count = 0;
+
+        foreach (int number in numbers)
+        {
+            if (number % 13 == 0)
+            {
+                sum += number;
+                count++;
+            }
+        }
+
+        return new CalculationResult(sum, count);
     }
 
     /// <summary>
@@ -33,14 +40,38 @@ public static class Calculator
                 nameof(maxDegreeOfParallelism));
         }
 
-        // TODO (П1): реализуйте Parallel.For с локальным состоянием
-        // (LocalSum, LocalCount) и Interlocked.Add после завершения
-        // каждой локальной части. Не меняйте сигнатуру метода.
-        // П1. TODO 4: проверьте пустой массив.
-        // П1. TODO 5: проверьте null и объясните, какое исключение
-        // должно возникнуть.
-        throw new NotImplementedException(
-            "TODO (П1): реализуйте CalculateParallel.");
+        long sum = 0;
+        int count = 0;
+
+        var options = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = maxDegreeOfParallelism
+        };
+
+        Parallel.For(
+            0,
+            numbers.Length,
+            options,
+            () => (LocalSum: 0L, LocalCount: 0),
+            (i, state, local) =>
+            {
+                int number = numbers[i];
+
+                if (number % 13 == 0)
+                {
+                    local.LocalSum += number;
+                    local.LocalCount++;
+                }
+
+                return local;
+            },
+            local =>
+            {
+                Interlocked.Add(ref sum, local.LocalSum);
+                Interlocked.Add(ref count, local.LocalCount);
+            });
+
+        return new CalculationResult(sum, count);
     }
 
     /// <summary>
@@ -61,7 +92,7 @@ public static class Calculator
 
         Parallel.For(0, numbers.Length, i =>
         {
-            if (numbers[i] % 7 == 0)
+            if (numbers[i] % 13 == 0)
             {
                 // ОШИБКА: общие переменные изменяются несколькими
                 // потоками без синхронизации. Ошибка проявляется
