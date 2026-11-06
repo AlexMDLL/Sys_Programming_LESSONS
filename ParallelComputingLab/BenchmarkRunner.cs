@@ -65,11 +65,11 @@ public static class BenchmarkRunner
 
         Console.WriteLine();
         Console.WriteLine($"Размер массива: {numbers.Length:N0}");
-        Console.WriteLine("Степень параллелизма | Время, мс | Ускорение");
-        Console.WriteLine("--------------------------------------------");
+        Console.WriteLine("Степень параллелизма | Время, мс | Ускорение | Совпадение");
+        Console.WriteLine("----------------------------------------------------------");
 
         // Прогрев.
-        Calculator.CalculateSequential(numbers);
+        CalculationResult expected = Calculator.CalculateSequential(numbers);
 
         foreach (int degree in degrees)
         {
@@ -99,24 +99,25 @@ public static class BenchmarkRunner
         foreach (int degree in degrees)
         {
             var times = new List<double>();
+            CalculationResult? actual = null;
 
             for (int i = 0; i < MeasurementCount; i++)
             {
-                var (_, ElapsedMilliseconds) = Measure(
+                var (Result, ElapsedMilliseconds) = Measure(
                     () => Calculator.CalculateParallel(numbers, degree));
 
+                actual = Result;
                 times.Add(ElapsedMilliseconds);
             }
 
             double median = Median(times);
             variants.Add((degree, median));
 
-            // П2. TODO 4: добавьте в таблицу ускорение:
-            // время последовательной обработки / время параллельной.
-            // П2. TODO 9: добавьте проверку совпадения результата
-            // для каждого измеряемого варианта.
+            bool matches = actual is not null && actual == expected;
+
             Console.WriteLine(
-                $"{degree,20} | {median,10:F3} | {sequentialMedian / median,8:F2}x");
+                $"{degree,20} | {median,10:F3} | {sequentialMedian / median,8:F2}x | " +
+                $"{(matches ? "да" : "НЕТ")}");
         }
 
         return (sequentialMedian, variants);
