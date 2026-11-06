@@ -131,13 +131,13 @@ internal class Program
                 $"Игрок: {gameEvent.PlayerId}, " +
                 $"Время: {gameEvent.Timestamp:HH:mm:ss}");
         }
+
+        Console.WriteLine();
+        BenchmarkRunner.CompareOrdered(events);
     }
 
     private static void RunBenchmarks()
     {
-        // TODO 9 (П2): сравните время выполнения вариантов
-        // с AsOrdered и без него.
-
         // Почему PLINQ не обязательно быстрее LINQ: количество элементов
         // само по себе не определяет стоимость работы. Здесь фильтрация и
         // группировка дешёвые, а накладные расходы на разбиение диапазона,

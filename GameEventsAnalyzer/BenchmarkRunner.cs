@@ -45,6 +45,45 @@ public static class BenchmarkRunner
         Console.WriteLine($"PLINQ: {Median(plinqTimes):F3} мс");
     }
 
+    public static void CompareOrdered(
+        List<GameEvent> events,
+        int repetitions = 5)
+    {
+        ArgumentNullException.ThrowIfNull(events);
+
+        if (repetitions < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(repetitions));
+        }
+
+        // Прогрев.
+        GameEventAnalyzer.GetKillsUnordered(events);
+        GameEventAnalyzer.GetKillsOrdered(events);
+
+        var unorderedTimes = new List<double>();
+        var orderedTimes = new List<double>();
+
+        for (int i = 0; i < repetitions; i++)
+        {
+            unorderedTimes.Add(MeasureKills(
+                () => GameEventAnalyzer.GetKillsUnordered(events)));
+
+            orderedTimes.Add(MeasureKills(
+                () => GameEventAnalyzer.GetKillsOrdered(events)));
+        }
+
+        Console.WriteLine($"Kill без AsOrdered: {Median(unorderedTimes):F3} мс");
+        Console.WriteLine($"Kill с AsOrdered:   {Median(orderedTimes):F3} мс");
+    }
+
+    private static double MeasureKills(Func<List<GameEvent>> action)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        action();
+        stopwatch.Stop();
+        return stopwatch.Elapsed.TotalMilliseconds;
+    }
+
     public static (List<PlayerStatistics> Result, double ElapsedMilliseconds)
         Measure(Func<List<PlayerStatistics>> action)
     {
