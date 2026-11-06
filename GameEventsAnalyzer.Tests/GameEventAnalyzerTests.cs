@@ -116,4 +116,16 @@ public class GameEventAnalyzerTests
         Assert.Single(result);
         Assert.Equal(new PlayerStatistics(7, 2, 150), result[0]);
     }
+
+    // null отсекается сразу в начале метода, поэтому возникает
+    // ArgumentNullException, а не NullReferenceException внутри LINQ/PLINQ.
+    [Fact]
+    public void Analyze_Null_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(
+            () => GameEventAnalyzer.AnalyzeWithLinq(null!));
+
+        Assert.Throws<ArgumentNullException>(
+            () => GameEventAnalyzer.AnalyzeWithPlinq(null!));
+    }
 }

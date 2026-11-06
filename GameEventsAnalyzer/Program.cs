@@ -82,6 +82,17 @@ internal class Program
         Console.WriteLine(
             $"Все события одного игрока -> записей: {single.Count}, " +
             $"очков: {single[0].TotalPoints}");
+
+        try
+        {
+            GameEventAnalyzer.AnalyzeWithPlinq(null!);
+            Console.WriteLine("null -> исключения не было");
+        }
+        catch (ArgumentNullException ex)
+        {
+            Console.WriteLine(
+                $"null -> {ex.GetType().Name}, параметр: {ex.ParamName}");
+        }
     }
 
     private static void RunOrderDemo()
