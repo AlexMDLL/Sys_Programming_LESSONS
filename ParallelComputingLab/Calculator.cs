@@ -104,33 +104,61 @@ public static class Calculator
     }
 
     /// <summary>
-    /// Заведомо неправильный вариант с гонкой данных.
+    /// Исправленный вариант: локальное состояние Parallel.For
+    /// и Interlocked.Add при объединении результатов.
     /// </summary>
-    /// <remarks>
-    /// П1. TODO 6: запустите метод на массиве из нескольких миллионов
-    /// элементов и сравните его результат с правильным.
-    /// П1. TODO 7: исправьте метод, не меняя его имя, через локальное
-    /// состояние Parallel.For.
-    /// </remarks>
     public static CalculationResult CalculateParallelWrong(int[] numbers)
     {
         ArgumentNullException.ThrowIfNull(numbers);
 
         long sum = 0;
         int count = 0;
+        int max = 0;
 
-        Parallel.For(0, numbers.Length, i =>
-        {
-            if (numbers[i] % 13 == 0)
+        Parallel.For(
+            0,
+            numbers.Length,
+            () => (LocalSum: 0L, LocalCount: 0, LocalMax: 0),
+            (i, state, local) =>
             {
-                // ОШИБКА: общие переменные изменяются несколькими
-                // потоками без синхронизации. Ошибка проявляется
-                // не обязательно при каждом запуске.
-                sum += numbers[i];
-                count++;
-            }
-        });
+                int number = numbers[i];
 
-        return new CalculationResult(sum, count, null);
+                if (number % 13 == 0)
+                {
+                    local.LocalSum += number;
+                    local.LocalCount++;
+
+                    if (number > local.LocalMax)
+                    {
+                        local.LocalMax = number;
+                    }
+                }
+
+                return local;
+            },
+            local =>
+            {
+                Interlocked.Add(ref sum, local.LocalSum);
+                Interlocked.Add(ref count, local.LocalCount);
+
+                int current = max;
+
+                while (local.LocalMax > current)
+                {
+                    int previous = Interlocked.CompareExchange(
+                        ref max,
+                        local.LocalMax,
+                        current);
+
+                    if (previous == current)
+                    {
+                        break;
+                    }
+
+                    current = previous;
+                }
+            });
+
+        return new CalculationResult(sum, count, count == 0 ? null : max);
     }
 }
