@@ -7,9 +7,7 @@ public static class DataGenerator
     {
         ArgumentOutOfRangeException.ThrowIfNegative(size);
 
-        // Фиксированный seed нужен для того, чтобы при каждом запуске
-        // получать одинаковые данные и сравнивать реализации
-        // на одном наборе.
+        // Фиксированный seed нужен для того, чтобы при каждом запуске получать одинаковые данные и сравнивать реализации на одном наборе.
         var random = new Random(seed);
         var numbers = new int[size];
 

@@ -4,7 +4,6 @@ namespace ParallelComputingLab.Tests;
 
 public class CalculatorTests
 {
-    // Контрольные сценарии из П1 (числа, кратные 13).
     [Theory]
     [InlineData(new[] { 13, 26, 40, 39 }, 78, 3, 39)]
     [InlineData(new[] { 1, 2, 3, 4 }, 0, 0, null)]
