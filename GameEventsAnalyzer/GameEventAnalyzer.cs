@@ -41,13 +41,15 @@ public static partial class GameEventAnalyzer
 
 public static partial class GameEventAnalyzer
 {
-    // TODO 1 (П2): сформируйте ленту событий Kill без AsOrdered.
     public static List<GameEvent> GetKillsUnordered(
         IEnumerable<GameEvent> events)
     {
         ArgumentNullException.ThrowIfNull(events);
 
-        throw new NotImplementedException("TODO 1 (П2): GetKillsUnordered");
+        return events
+            .AsParallel()
+            .Where(e => e.Type == "Kill")
+            .ToList();
     }
 
     // TODO 2 (П2): сформируйте ту же ленту с AsOrdered.

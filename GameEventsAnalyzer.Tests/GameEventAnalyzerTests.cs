@@ -128,4 +128,13 @@ public class GameEventAnalyzerTests
         Assert.Throws<ArgumentNullException>(
             () => GameEventAnalyzer.AnalyzeWithPlinq(null!));
     }
+
+    [Fact]
+    public void GetKillsUnordered_ReturnsOnlyKills()
+    {
+        var result = GameEventAnalyzer.GetKillsUnordered(CreateEvents());
+
+        Assert.Equal(3, result.Count);
+        Assert.All(result, gameEvent => Assert.Equal("Kill", gameEvent.Type));
+    }
 }
