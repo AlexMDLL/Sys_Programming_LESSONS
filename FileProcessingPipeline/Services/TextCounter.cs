@@ -1,11 +1,5 @@
 namespace FileProcessingPipeline.Services;
 
-// Подсчёт строк, слов и символов.
-// Правила:
-// - пустой файл содержит 0 строк;
-// - "Hello\n" содержит 1 строку;
-// - слово — последовательность символов, разделённая пробельными символами;
-// - символы считаются через string.Length.
 public static class TextCounter
 {
     public static (int Lines, int Words, long Characters) Count(string text)
@@ -15,19 +9,10 @@ public static class TextCounter
         int lines = 0;
 
         if (!string.IsNullOrEmpty(text))
-        {
-            foreach (char c in text)
-            {
-                if (c == '\n')
-                {
-                    lines++;
-                }
-            }
+        { 
+            foreach (char c in text)  { if (c == '\n') { lines++; } }
 
-            if (text[^1] != '\n')
-            {
-                lines++;
-            }
+            if (text[^1] != '\n') { lines++; }
         }
 
         int words = text

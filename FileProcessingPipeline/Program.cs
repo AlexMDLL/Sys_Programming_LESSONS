@@ -6,7 +6,7 @@ namespace FileProcessingPipeline;
 
 internal class Program
 {
-    private static async Task Main()
+    private static async Task Main(string[] args)
     {
         Console.WriteLine("================================");
         Console.WriteLine("     FILE PROCESSING PIPELINE");
@@ -30,6 +30,71 @@ internal class Program
 
         Console.WriteLine($"Найдено файлов: {tasks.Count}");
 
+        AnalysisReport? report = args.Length > 0
+            ? await RunFromArgumentsAsync(args, tasks)
+            : await RunInteractiveAsync(tasks);
+
+        if (report is null) { return;    }
+
+        PrintReport(report);
+
+        if (report.Mode.StartsWith("Pipeline", StringComparison.Ordinal)) { PrintWorkerStatistics(report); }
+
+        await SaveReportAsync(report);
+    }
+
+    // Неинтерактивный запуск: удобно проверять конфигурации и сравнивать режимы из командной строки.
+    private static async Task<AnalysisReport?> RunFromArgumentsAsync(
+        string[] args,
+        List<FileTask> tasks)
+    {
+        if (args[0] is "--seq")
+        {
+            return await SequentialProcessor.ProcessAsync(tasks);
+        }
+
+        if (args[0] is "--workers"
+            && args.Length > 1
+            && int.TryParse(args[1], out int workerCount)
+            && workerCount > 0)
+        {
+            return await PipelineProcessor.ProcessAsync(tasks, workerCount);
+        }
+
+        // Сценарий с недоступным файлом: ошибка одного задания не должна останавливать обработку остальных и ронять программу.
+        if (args[0] is "--errors")
+        {
+            int workers = args.Length > 1 &&
+                int.TryParse(args[1], out int parsedWorkers) &&
+                parsedWorkers > 0
+                    ? parsedWorkers
+                    : 2;
+
+            var tasksWithError = new List<FileTask>(tasks)
+            {
+                new(
+                    tasks.Count + 1,
+                    Path.Combine(
+                        AppContext.BaseDirectory,
+                        "Data",
+                        "missing.txt"))
+            };
+
+            return await PipelineProcessor.ProcessAsync(tasksWithError, workers);
+        }
+
+        if (args[0] is "--compare")
+        {
+            return await RunComparisonAsync(tasks);
+        }
+
+        Console.WriteLine("Использование: --seq | --workers N");
+        return null;
+    }
+
+    private static async Task<AnalysisReport?> RunInteractiveAsync(
+        List<FileTask> tasks)
+    {
         Console.WriteLine();
         Console.WriteLine("1. Последовательная обработка");
         Console.WriteLine("2. Параллельная обработка");
@@ -38,13 +103,10 @@ internal class Program
 
         string? choice = Console.ReadLine();
 
-        AnalysisReport report;
-
         switch (choice)
         {
             case "1":
-                report = await SequentialProcessor.ProcessAsync(tasks);
-                break;
+                return await SequentialProcessor.ProcessAsync(tasks);
 
             case "2":
                 Console.Write("Количество обработчиков: ");
@@ -53,20 +115,59 @@ internal class Program
                     workerCount < 1)
                 {
                     Console.WriteLine("Некорректное значение.");
-                    return;
+                    return null;
                 }
 
-                report = await PipelineProcessor.ProcessAsync(tasks, workerCount);
-                break;
+                return await PipelineProcessor.ProcessAsync(tasks, workerCount);
 
             default:
                 Console.WriteLine("Неизвестный режим.");
-                return;
+                return null;
+        }
+    }
+
+    private static async Task<AnalysisReport> RunComparisonAsync(
+        List<FileTask> tasks)
+    {
+        Console.WriteLine();
+        Console.WriteLine(
+            "Режим            | Обработчики | Время, мс | Успешно | Совпадает");
+        Console.WriteLine(
+            "----------------------------------------------------------------");
+
+        var sequential = await SequentialProcessor.ProcessAsync(
+            tasks,
+            logProgress: false);
+
+        PrintComparisonRow("Sequential", sequential, same: true);
+
+        foreach (int workers in new[] { 1, 2, 4, 8 })
+        {
+            var parallel = await PipelineProcessor.ProcessAsync(
+                tasks,
+                workers,
+                logProgress: false);
+
+            bool same = parallel.TotalLines == sequential.TotalLines
+                && parallel.TotalWords == sequential.TotalWords
+                && parallel.TotalCharacters == sequential.TotalCharacters
+                && parallel.SuccessfulFiles == sequential.SuccessfulFiles;
+
+            PrintComparisonRow($"Pipeline ({workers})", parallel, same);
         }
 
-        PrintReport(report);
+        return sequential;
+    }
 
-        await SaveReportAsync(report);
+    private static void PrintComparisonRow(
+        string mode,
+        AnalysisReport report,
+        bool same)
+    {
+        Console.WriteLine(
+            $"{mode,-16} | {report.WorkerCount,11} | " +
+            $"{report.ProcessingTimeMs,9} | {report.SuccessfulFiles,7} | " +
+            $"{(same ? "да" : "НЕТ")}");
     }
 
     private static void PrintReport(AnalysisReport report)
@@ -97,22 +198,42 @@ internal class Program
         if (report.Errors.Count > 0)
         {
             Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("ОШИБКИ:");
+            Console.ResetColor();
 
             foreach (var error in report.Errors)
             {
-                Console.WriteLine(
-                    $"{error.FileName}: {error.ErrorType} - {error.Message}");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine( $"{error.FileName}: {error.ErrorType} - {error.Message}");
+                Console.ResetColor();
             }
         }
     }
 
+    // Сколько заданий выполнил каждый обработчик: видно, насколько равномерно распределилась нагрузка.
+    private static void PrintWorkerStatistics(AnalysisReport report)
+    {
+        Console.WriteLine();
+        Console.WriteLine("========== СТАТА WORKERS ==========");
+        Console.WriteLine();
+
+        foreach (var group in report.Results
+                     .GroupBy(x => x.WorkerId)
+                     .OrderBy(group => group.Key))
+        {
+            Console.WriteLine($"Worker {group.Key}: {group.Count()} заданий");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine($"Всего обработано: {report.Results.Count}");
+        Console.WriteLine();
+        Console.WriteLine("=======================================");
+    }
+
     private static async Task SaveReportAsync(AnalysisReport report)
     {
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true
-        };
+        var options = new JsonSerializerOptions { WriteIndented = true };
 
         string json = JsonSerializer.Serialize(report, options);
 

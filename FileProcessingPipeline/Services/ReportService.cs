@@ -15,7 +15,6 @@ public static class ReportService
         ArgumentNullException.ThrowIfNull(mode);
         ArgumentNullException.ThrowIfNull(results);
         ArgumentNullException.ThrowIfNull(errors);
-
         return new AnalysisReport
         {
             Mode = mode,

@@ -1,5 +1,4 @@
 namespace FileProcessingPipeline.Models;
-
 public sealed class AnalysisReport
 {
     public string Mode { get; init; } = "";

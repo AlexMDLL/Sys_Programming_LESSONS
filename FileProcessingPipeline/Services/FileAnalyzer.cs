@@ -5,7 +5,7 @@ namespace FileProcessingPipeline.Services;
 
 // Класс отвечает исключительно за анализ одного файла.
 // Ничего не знает о количестве исполнителей и распределении заданий:
-// анализ одного файла и организация параллельной работы — разные задачи.
+// анализ одного файла и организация параллельной работы - разные задачи.
 public static class FileAnalyzer
 {
     public static async Task<FileAnalysisResult> AnalyzeAsync(

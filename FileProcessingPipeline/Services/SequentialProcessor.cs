@@ -7,7 +7,8 @@ namespace FileProcessingPipeline.Services;
 public static class SequentialProcessor
 {
     public static async Task<AnalysisReport> ProcessAsync(
-        IEnumerable<FileTask> tasks)
+        IEnumerable<FileTask> tasks,
+        bool logProgress = true)
     {
         ArgumentNullException.ThrowIfNull(tasks);
 
@@ -26,7 +27,7 @@ public static class SequentialProcessor
 
                 results.Add(result);
 
-                Console.WriteLine($"[OK] {result.FileName}");
+                if (logProgress) {  Console.WriteLine($"[OK] {result.FileName}"); }
             }
             catch (IOException ex)
             {

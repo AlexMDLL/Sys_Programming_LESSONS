@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Threading.Channels;
 using FileProcessingPipeline.Models;
 
 namespace FileProcessingPipeline.Services;
@@ -12,7 +14,8 @@ public static class PipelineProcessor
 {
     public static async Task<AnalysisReport> ProcessAsync(
         IEnumerable<FileTask> tasks,
-        int workerCount)
+        int workerCount,
+        bool logProgress = true)
     {
         ArgumentNullException.ThrowIfNull(tasks);
 
@@ -26,55 +29,99 @@ public static class PipelineProcessor
         var results = new ConcurrentBag<FileAnalysisResult>();
         var errors = new ConcurrentBag<FileProcessingError>();
 
-        // TODO 1 (П1): создайте канал, запишите в него все задания
-        // и закройте запись.
-        // TODO 2 (П1): организуйте получение заданий из канала в WorkerAsync.
-        // TODO 3 (П1): запустите workerCount независимых обработчиков.
-        // TODO 4 (П1): дождитесь завершения всех обработчиков.
-        // TODO 5 (П1): измерьте общее время выполнения и передайте его в отчёт.
+        var stopwatch = Stopwatch.StartNew();
 
-        await Task.Yield();
+        // Ограниченный канал создаёт обратное давление: производитель не может накопить больше заданий, чем успевают разобрать обработчики.
+        var channel = Channel.CreateBounded<FileTask>(
+            new BoundedChannelOptions(workerCount * 4)
+            {
+                FullMode = BoundedChannelFullMode.Wait,
+                SingleWriter = true,
+                SingleReader = false
+            });
 
-        throw new NotImplementedException(
-            "Конвейер не реализован: " +
-            $"{taskList.Count} заданий, " +
-            $"{results.Count} результатов, " +
-            $"{errors.Count} ошибок.");
+        // Производитель работает отдельной задачей: пишет задания в канал и закрывает запись, когда задания закончатся.
+        Task producer = Task.Run(async () =>
+        {
+            foreach (var task in taskList)
+            {
+                await channel.Writer.WriteAsync(task);
+            }
+
+            channel.Writer.TryComplete();
+        });
+
+        // Каждый обработчик — независимая задача, читающая из того же канала: свободный обработчик сразу забирает следующее задание из очереди.
+        Task[] workers = Enumerable
+            .Range(1, workerCount)
+            .Select(workerId => WorkerAsync(
+                workerId,
+                channel.Reader,
+                results,
+                errors,
+                logProgress))
+            .ToArray();
+
+        // Главный поток ждёт, пока производитель раздаст задания, а обработчики дочитают очередь и завершатся.
+        await Task.WhenAll([.. workers, producer]);
+
+        stopwatch.Stop();
+
+        // Время измеряется от создания канала до завершения последнего обработчика — то есть вся работа конвейера целиком.
+        return ReportService.Create(
+            $"Pipeline ({workerCount} workers)",
+            taskList.Count,
+            results.ToList(),
+            errors.ToList(),
+            workerCount,
+            stopwatch.ElapsedMilliseconds);
     }
 
-    // Обрабатывает одно задание, но пока не определено,
-    // откуда обработчик будет получать следующее задание.
+    // Обработчик читает задания из канала, пока производитель не закроет запись и очередь не опустеет.
+    // Ошибка одного файла не останавливает обработчик: она попадает в errors, и цикл продолжается.
     private static async Task WorkerAsync(
         int workerId,
-        FileTask task,
+        ChannelReader<FileTask> reader,
         ConcurrentBag<FileAnalysisResult> results,
-        ConcurrentBag<FileProcessingError> errors)
+        ConcurrentBag<FileProcessingError> errors,
+        bool logProgress)
     {
-        try
+        await foreach (var task in reader.ReadAllAsync())
         {
-            Console.WriteLine($"[WORKER {workerId}] Начал: {task.FilePath}");
+            try
+            {
+                if (logProgress)
+                {
+                    Console.WriteLine(
+                        $"[WORKER {workerId}] Начал: {task.FilePath}");
+                }
 
-            var result = await FileAnalyzer.AnalyzeAsync(task, workerId);
+                var result = await FileAnalyzer.AnalyzeAsync(task, workerId);
 
-            results.Add(result);
+                results.Add(result);
 
-            Console.WriteLine($"[WORKER {workerId}] Завершил: {result.FileName}");
-        }
-        catch (IOException ex)
-        {
-            errors.Add(new FileProcessingError(
-                task.Id,
-                Path.GetFileName(task.FilePath),
-                nameof(IOException),
-                ex.Message));
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            errors.Add(new FileProcessingError(
-                task.Id,
-                Path.GetFileName(task.FilePath),
-                nameof(UnauthorizedAccessException),
-                ex.Message));
+                if (logProgress)
+                {
+                    Console.WriteLine(
+                        $"[WORKER {workerId}] Завершил: {result.FileName}");
+                }
+            }
+            catch (IOException ex)
+            {
+                errors.Add(new FileProcessingError(
+                    task.Id,
+                    Path.GetFileName(task.FilePath),
+                    nameof(IOException),
+                    ex.Message));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                errors.Add(new FileProcessingError(
+                    task.Id,
+                    Path.GetFileName(task.FilePath),
+                    nameof(UnauthorizedAccessException),
+                    ex.Message));
+            }
         }
     }
 }
