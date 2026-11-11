@@ -97,4 +97,37 @@ catch (ArgumentNullException) { ExportNULL_Propal = true; }
 Check("ReportService отклоняет null-экспортёр", ExportNULL_Propal);
 
 
-Console.WriteLine($"Провалено базовых проверок: {failed.Count} из 10.");
+// hw: HTML-экспортёр — h1, p, footer + экранирование.
+var htmlPath = Path.Combine(Path.GetTempPath(), $"report-{Guid.NewGuid():N}.html");
+try
+{
+    new HtmlReportExporter(htmlPath).Export(
+        new ReportDocument("Тест <b>заголовок</b>", "Тело & <script>alert(1)</script>"));
+
+    var html = File.ReadAllText(htmlPath);
+
+    Check("html: файл создан", File.Exists(htmlPath));
+    Check("html: заголовок в h1", html.Contains("<h1>Тест &lt;b&gt;заголовок&lt;/b&gt;</h1>"));
+    Check("html: текст в p", html.Contains("<p>") && html.Contains("&amp;"));
+    Check("html: дата в footer", html.Contains("<footer>Сформировано:"));
+    Check("html: разметка из отчёта экранирована", !html.Contains("<script>"));
+}
+finally { if (File.Exists(htmlPath)) File.Delete(htmlPath); }
+
+var HtmlNULL_Otcazano = false;
+try { new HtmlReportExporter(htmlPath).Export(null!); }
+catch (ArgumentNullException) { HtmlNULL_Otcazano = true; }
+Check("html: null-документ отклоняется", HtmlNULL_Otcazano);
+
+var Html_Oshibka = false;
+try
+{
+    new HtmlReportExporter(
+        Path.Combine(Path.GetTempPath(), $"нет-{Guid.NewGuid():N}", "report.html"))
+        .Export(new ReportDocument("T", "B"));
+}
+catch (DirectoryNotFoundException) { Html_Oshibka = true; }
+Check("html: ошибка записи не подавляется", Html_Oshibka);
+
+
+Console.WriteLine($"Провалено базовых проверок: {failed.Count} из {failed.Count + passed}.");
