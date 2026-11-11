@@ -1,6 +1,6 @@
 namespace ResourceManagementLab;
 
-// Один помощник на все выводы, чтобы не красить каждую строку руками.
+// Сделал лишнюю, а то красить ручками не хочу, а так будет поудобнее когда что вызывается то и красится.
 public static class Ui
 {
     public static void Line(string text = "", ConsoleColor color = ConsoleColor.Gray)

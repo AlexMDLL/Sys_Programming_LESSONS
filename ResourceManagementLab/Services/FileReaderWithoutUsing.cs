@@ -14,7 +14,7 @@ public static class FileReaderWithoutUsing
 
         string content = reader.ReadToEnd();
 
-        // Dispose не зовём — так и задумано, это пример плохого кода.
+        // Dispose не зовём — так и задумано, это пример говно-кода.
         return content;
     }
 }

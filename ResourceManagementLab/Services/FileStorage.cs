@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace ResourceManagementLab.Services;
 
 // Класс сам владеет потоком — значит, сам и должен его закрыть.
@@ -10,31 +12,57 @@ public sealed class FileStorage : IDisposable
 
     public FileStorage(string filePath)
     {
-        // TODO 1 (П2): открой FileStream в режиме OpenOrCreate на чтение и запись.
-        throw new NotImplementedException("FileStorage: конструктор");
+        _stream = new FileStream(
+            filePath,
+            FileMode.OpenOrCreate,
+            FileAccess.ReadWrite,
+            FileShare.None);
     }
 
     public void Write(string text)
     {
-        // TODO 2 (П2): проверь, что объект ещё жив.
-        // TODO 3 (П2): переведи текст в байты.
-        // TODO 4 (П2): запиши байты в поток.
-        throw new NotImplementedException("FileStorage.Write");
+        ThrowIfDisposed();
+
+        byte[] data = Encoding.UTF8.GetBytes(text);
+
+        _stream.Write(data);
+        _stream.Flush();
     }
 
     public string Read()
     {
-        // TODO 5 (П2): проверь состояние объекта.
-        // TODO 6 (П2): верни позицию в начало.
-        // TODO 7 (П2): прочитай текст, не закрывая чужой поток (leaveOpen).
-        throw new NotImplementedException("FileStorage.Read");
+        ThrowIfDisposed();
+
+        _stream.Position = 0;
+
+        // leaveOpen: true — читатель не должен закрывать чужой поток.
+        using var reader = new StreamReader(
+            _stream,
+            Encoding.UTF8,
+            detectEncodingFromByteOrderMarks: true,
+            bufferSize: 1024,
+            leaveOpen: true);
+
+        return reader.ReadToEnd();
     }
 
     public void Dispose()
     {
-        // TODO 8 (П2): не освобождай дважды.
-        // TODO 9 (П2): закрой поток.
-        // TODO 10 (П2): поставь флаг _disposed.
-        throw new NotImplementedException("FileStorage.Dispose");
+        // просто ниче не делаем.
+        if (_disposed)
+        {
+            return;
+        }
+
+        _stream.Dispose();
+
+        _disposed = true;
+
+        Ui.Success("FileStorage: ресурс освобождён.");
+    }
+
+    private void ThrowIfDisposed()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
     }
 }
