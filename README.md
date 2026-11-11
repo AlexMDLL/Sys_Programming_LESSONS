@@ -8,11 +8,14 @@
 DllCourse/
 ├── DllCourse.sln
 ├── SystemInfoLibrary/          — classlib, net9.0
-│   └── SystemInfo.cs           — TODO (П1)
+│   └── SystemInfo.cs           — методы библиотеки
 ├── SystemInfoApp/              — console, net9.0-windows
 │   ├── Program.cs              — вывод
 │   ├── Ui.cs                   — цветной вывод
-│   └── Interop/WindowsApi.cs   — TODO (П1): DllImport
+│   └── Interop/WindowsApi.cs   — P/Invoke kernel32.dll
+├── SystemInfoSecondApp/        — console, net9.0-windows, та же DLL
+│   ├── Program.cs
+│   └── Ui.cs
 └── t/Пара 16. DLL, сборки .NET и P.Invoke.md
 ```
 
@@ -21,9 +24,8 @@ DllCourse/
 ```
 dotnet build
 dotnet run --project SystemInfoApp
+dotnet run --project SystemInfoSecondApp
 ```
-
-Пока методы не готовы — пишет красным «Ещё не готово».
 
 ## П1
 
