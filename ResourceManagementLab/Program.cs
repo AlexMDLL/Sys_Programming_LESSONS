@@ -20,8 +20,14 @@ internal class Program
         Ui.Step("1. Чтение без using");
         Ui.Line(FileReaderWithoutUsing.Read(filePath));
 
+        // Разница простая: без using поток закроется когда-нибудь потом,
+        // а может и не закрыться. С using — сразу на выходе из метода.
         Ui.Step("2. Чтение с using");
         RunStep(() => Ui.Line(FileReaderWithUsing.Read(filePath)));
+
+        Ui.Step("2б. Чтение с ошибкой — using всё равно закроет поток");
+        try { FileReaderWithUsing.ReadWithException(filePath); }
+        catch (InvalidOperationException ex) { Ui.Error($"Перехвачено: {ex.Message}"); }
 
         Ui.Step("3. Проверка Dispose");
         RunStep(() =>
@@ -47,7 +53,7 @@ internal class Program
         Ui.Success("Работа программы завершена.");
     }
 
-    // Пока часть П2 не готова, шаг просто сообщает, что метод ещё не написан.
+    // Скоро
     private static void RunStep(Action action)
     {
         try

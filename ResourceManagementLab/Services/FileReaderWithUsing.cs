@@ -2,15 +2,35 @@ namespace ResourceManagementLab.Services;
 
 public static class FileReaderWithUsing
 {
-    // TODO (П1): перепиши чтение через using, чтобы поток закрывался сам.
+    // using сам вызовет Dispose — и на обычном выходе, и если что-то упало.
     public static string Read(string filePath)
     {
-        throw new NotImplementedException("FileReaderWithUsing.Read");
+        using var stream = new FileStream(
+            filePath,
+            FileMode.Open,
+            FileAccess.Read);
+
+        // StreamReader в стоке закрывает переданный поток,
+        // не ссы: повторный Dispose у FileStream ниче не ломает.
+        using var reader = new StreamReader(stream);
+
+        return reader.ReadToEnd();
     }
 
-    // TODO (П1): прочитай файл и специально урони исключение уже после чтения.
+    // Читаем нормально, а падаем уже после чтения — поток всё равно закроется.
     public static string ReadWithException(string filePath)
     {
-        throw new NotImplementedException("FileReaderWithUsing.ReadWithException");
+        using var stream = new FileStream(
+            filePath,
+            FileMode.Open,
+            FileAccess.Read);
+
+        using var reader = new StreamReader(stream);
+
+        // Просто заставляем поток реально поработать.
+        _ = reader.ReadToEnd();
+
+        throw new InvalidOperationException(
+            "Искусственная ошибка после чтения файла.");
     }
 }
