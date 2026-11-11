@@ -6,11 +6,30 @@ public static class MemoryDemo
     {
         Ui.Section("=== MEMORY DEMO ===");
 
-        // TODO (П1): создай три массива — 1 KB, 1 MB и 5 MB.
-        // TODO (П1): покажи поколение каждого через GC.GetGeneration.
-        // TODO (П1): покажи GC.CollectionCount(0), (1) и (2).
-        // TODO (П1): добавь комментарий, почему размер не определяет поколение.
+        var tiny = new byte[1024];
+        var medium = new byte[16 * 1024];
+        var big = new byte[1024 * 1024];
+        var huge = new byte[1024 * 1024 * 5];
 
-        throw new NotImplementedException("MemoryDemo");
+        Ui.Line($"1 KB:  Gen {GC.GetGeneration(tiny)}");
+        Ui.Line($"16 KB: Gen {GC.GetGeneration(medium)}");
+        Ui.Line($"1 MB:  Gen {GC.GetGeneration(big)}");
+        Ui.Line($"5 MB:  Gen {GC.GetGeneration(huge)}");
+
+        Ui.Line($"Сборок Gen 0: {GC.CollectionCount(0)}");
+        Ui.Line($"Сборок Gen 1: {GC.CollectionCount(1)}");
+        Ui.Line($"Сборок Gen 2: {GC.CollectionCount(2)}");
+
+        // всё что больше ~85 000 байт, съе******(уходит) в Large Object Heap,
+        // а LOH считается частью Gen 2 — поэтому большие массивы сразу там.
+        // Для обычных объектов решает не размер, а пережили ли они сборку. Так то и так все дохнут, а тут им испытание еще
+        tiny = null!;
+        medium = null!;
+        big = null!;
+        huge = null!;
+
+        Ui.Success("Ссылки потеряны — дальше уже дело GC.");
+
+        Ui.Line($"Занято управляемой памяти: {GC.GetTotalMemory(false) / 1024} KB");
     }
 }
