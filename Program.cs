@@ -41,8 +41,12 @@ public sealed class ProjectService
 
         // TODO 4: Проверить повторный вызов Dispose.
         DemoDoubleDispose();
+
         // TODO 5: Использовать using и проверить закрытие при исключении.
+        DemoUsingAndException();
         // TODO 6: Объяснить разницу между управляемой памятью и внешним ресурсом.
+        // Управляемая память контролируема? а внешний ресурс очень зависит от многих факторов мб
+
         // TODO 7: Снять показатели GC.GetTotalMemory и CollectionCount без принудительного GC.
 
         // TODO 8: Добавить IAsyncDisposable, если используемый ресурс поддерживает асинхронное освобождение.
@@ -50,7 +54,7 @@ public sealed class ProjectService
         // TODO 10: Описать, почему GC.Collect не заменяет Dispose.
 
         Console.WriteLine();
-        Console.WriteLine("Задания 1-4 выполнены.");
+        Console.WriteLine("Задания 1-5 выполнены.");
         await Task.CompletedTask;
     }
 
@@ -58,7 +62,7 @@ public sealed class ProjectService
     private static void DemoOwnedFileStream()
     {
         var path = Path.Combine(AppContext.BaseDirectory, "data", "resource-lab.bin");
-        var resource = new FileResourceOwner(path);
+        using var resource = new FileResourceOwner(path);
 
         Console.WriteLine("[Задание 1] Класс, владеющий FileStream");
         Console.WriteLine($"  Путь:            {resource.FilePath}");
@@ -71,7 +75,7 @@ public sealed class ProjectService
     private static void DemoWriteRead()
     {
         var path = Path.Combine(AppContext.BaseDirectory, "data", "resource-data.bin");
-        var resource = new FileResourceOwner(path);
+        using var resource = new FileResourceOwner(path);
         var text = "Давай хлопок сам себя не соберет!";
 
         resource.WriteText(text);
@@ -132,6 +136,34 @@ public sealed class ProjectService
             Console.WriteLine($"  Файл снова открыт: {probe.Length} байт");
         }
         catch (IOException ex) {  Console.WriteLine($"  Файл всё ещё занят сбором хлопка: {ex.GetType().Name}");}
+    }
+
+    // TODO 5: using закроет поток, даже если внутри чтото рвануло.
+    private static void DemoUsingAndException()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "data", "using-exception.bin");
+        Console.WriteLine("[Задание 5] using и закрытие при исключении из шараги");
+        FileResourceOwner? captured = null;
+        try
+        {
+            using (var resource = new FileResourceOwner(path))
+            {
+                captured = resource;
+                resource.WriteText("запись до");
+                throw new InvalidOperationException("тестовое исключение внутри");
+            }
+        }
+        catch (InvalidOperationException ex) { Console.WriteLine($"  Исключение поймано: {ex.Message}"); }
+
+        Console.WriteLine($"  После: открыт = {captured?.IsOpen}");
+
+        // Если поток закрылся, файл открывается заново.
+        try
+        {
+            using var probe = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None);
+            Console.WriteLine($"  Файл свободен: {probe.Length} байт");
+        }
+        catch (IOException ex) { Console.WriteLine($"  Файл занят: {ex.GetType().Name}"); }
     }
     
 }
