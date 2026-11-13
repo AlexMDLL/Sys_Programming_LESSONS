@@ -64,10 +64,12 @@ public sealed class ProjectService
         await DemoAsyncDisposeAsync();
 
         // TODO 9: Реализовать тесты на владение потоком и leaveOpen.
+        DemoOwnershipTests();
+
         // TODO 10: Описать, почему GC.Collect не заменяет Dispose.
 
         Console.WriteLine();
-        Console.WriteLine("Задания 1-8 выполнены.");
+        Console.WriteLine("Задания 1-9 выполнены.");
         await Task.CompletedTask;
     }
 
@@ -228,6 +230,14 @@ public sealed class ProjectService
             await probe.ReadExactlyAsync(buffer);
             Console.WriteLine($"  Файл свободен, прочитано: {Encoding.UTF8.GetString(buffer)}");
         }
+    }
+
+    // TODO 9: ручные тесты и leaveOpen
+    private static void DemoOwnershipTests()
+    {
+        Console.WriteLine("[Задание 9] Владение потоком и leaveOpen");
+        var report = ResourceOwnershipTests.RunAll();
+        Console.WriteLine($"  Итого: {report.Passed}/{report.Total} проверок пошло хнуйц.");
     }
 
     

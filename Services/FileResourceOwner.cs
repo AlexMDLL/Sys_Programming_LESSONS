@@ -6,6 +6,7 @@ namespace Variant14.Services;
 public sealed class FileResourceOwner : IDisposable, IAsyncDisposable
 {
     private readonly FileStream _stream; // живёт только тут, наружу не отдаём
+    private readonly bool _leaveOpen; // закрывать ли поток вместе с нами
     private bool _disposed; // уже закрылись?
 
     public FileResourceOwner(string path, FileMode mode = FileMode.OpenOrCreate)
@@ -19,6 +20,17 @@ public sealed class FileResourceOwner : IDisposable, IAsyncDisposable
             Directory.CreateDirectory(directory);
 
         _stream = new FileStream(FilePath, mode, FileAccess.ReadWrite, FileShare.None);
+        _leaveOpen = false;
+    }
+
+    // Оборачиваем чужой поток в обертку leaveOpen решает кик его или нет самостоятельный типа шарите?
+    public FileResourceOwner(FileStream stream, bool leaveOpen)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+
+        _stream = stream;
+        _leaveOpen = leaveOpen;
+        FilePath = stream.Name;
     }
 
     public string FilePath { get; }
@@ -65,7 +77,8 @@ public sealed class FileResourceOwner : IDisposable, IAsyncDisposable
             return;
 
         _disposed = true;
-        _stream.Dispose();
+        if (!_leaveOpen)
+            _stream.Dispose();
     }
 
     // Из за того что FileStream умеет закрываться асинхронно — грех не воспользоваться таким сладким моментом... 😛
@@ -75,7 +88,8 @@ public sealed class FileResourceOwner : IDisposable, IAsyncDisposable
             return;
 
         _disposed = true;
-        await _stream.DisposeAsync().ConfigureAwait(false);
+        if (!_leaveOpen)
+            await _stream.DisposeAsync().ConfigureAwait(false);
     }
 
     // Поток закрыт — дальше низя, дальше бога нет ну в принципе как в кабинете физики или че там
