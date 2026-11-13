@@ -1,0 +1,47 @@
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Threading.Channels;
+
+namespace Variant14;
+
+internal static class Program
+{
+    private static async Task Main()
+    {
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
+        Console.WriteLine("Зачётный проект 14: Менеджер ресурсов");
+        Console.WriteLine(new string('=', 64));
+
+        // Стартовый сценарий нужен для проверки структуры проекта.
+        // Реализацию индивидуальных требований выполняйте в ProjectService.
+        var service = new ProjectService();
+        await service.RunAsync();
+
+        Console.WriteLine();
+        Console.WriteLine("Нажмите Enter для завершения.");
+        Console.ReadLine();
+    }
+}
+
+public sealed class ProjectService
+{
+    public async Task RunAsync()
+    {
+        // TODO: перенесите предметную логику в отдельные методы и классы.
+        // TODO: не размещайте весь проект в Main.
+        // TODO 1: Создать класс, который владеет FileStream.
+        // TODO 2: Реализовать запись и чтение данных.
+        // TODO 3: Реализовать IDisposable и защиту от использования после Dispose.
+        // TODO 4: Проверить повторный вызов Dispose.
+        // TODO 5: Использовать using и проверить закрытие при исключении.
+        // TODO 6: Объяснить разницу между управляемой памятью и внешним ресурсом.
+        // TODO 7: Снять показатели GC.GetTotalMemory и CollectionCount без принудительного GC.
+
+        // TODO 8: Добавить IAsyncDisposable, если используемый ресурс поддерживает асинхронное освобождение.
+        // TODO 9: Реализовать тесты на владение потоком и leaveOpen.
+        // TODO 10: Описать, почему GC.Collect не заменяет Dispose.
+
+        Console.WriteLine("Стартовый проект собран. Реализуйте задания варианта.");
+        await Task.CompletedTask;
+    }
+}
