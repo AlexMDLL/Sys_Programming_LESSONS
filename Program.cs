@@ -35,6 +35,8 @@ public sealed class ProjectService
         DemoOwnedFileStream();
 
         // TODO 2: Реализовать запись и чтение данных.
+        DemoWriteRead();
+
         // TODO 3: Реализовать IDisposable и защиту от использования после Dispose.
         // TODO 4: Проверить повторный вызов Dispose.
         // TODO 5: Использовать using и проверить закрытие при исключении.
@@ -46,14 +48,11 @@ public sealed class ProjectService
         // TODO 10: Описать, почему GC.Collect не заменяет Dispose.
 
         Console.WriteLine();
-        Console.WriteLine("Задание 1 выполнено: класс-владелец FileStream создан.");
+        Console.WriteLine("Задания 1-2 выполнены.");
         await Task.CompletedTask;
     }
 
-    /// <summary>
-    /// TODO 1: класс-владелец сам открывает FileStream; вызывающий код получает
-    /// готовый объект и не работает с конструктором потока напрямую.
-    /// </summary>
+    // поток открывает сам владелец
     private static void DemoOwnedFileStream()
     {
         var path = Path.Combine(AppContext.BaseDirectory, "data", "resource-lab.bin");
@@ -66,6 +65,23 @@ public sealed class ProjectService
         Console.WriteLine($"  Размер файла:    {resource.Length} байт");
 
         // Освобождение потока добавим в TODO 3 (IDisposable).
+    }
+
+    // TODO 2: пишем и читаем один файл.
+    private static void DemoWriteRead()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "data", "resource-data.bin");
+        var resource = new FileResourceOwner(path);
+        var text = "Давай хлопок сам себя не соберет!";
+
+        resource.WriteText(text);
+        var readBack = resource.ReadText();
+
+        Console.WriteLine("[Задание 2] Запись и чтение данных");
+        Console.WriteLine($"  Записано:  {text}");
+        Console.WriteLine($"  Прочитано: {readBack}");
+        Console.WriteLine($"  Байты (ну типо провокация ю ноу):      {resource.Length}");
+        Console.WriteLine($"  Совпадает: {readBack == text}");
     }
 }
 /*

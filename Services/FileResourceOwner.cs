@@ -1,9 +1,12 @@
+using System.Text;
+
 namespace Variant14.Services;
+
+// Класс сам открывает FileStream и владеет им.
 public sealed class FileResourceOwner
 {
-    // Приватное поле — поток нельзя подменить или закрыть извне.
-    private readonly FileStream _stream;
-    // Открывает сущ или создаёт новый файл и становится хозяином потока
+    private readonly FileStream _stream; // наружу ни дам чек нидам ни дааааааам
+
     public FileResourceOwner(string path, FileMode mode = FileMode.OpenOrCreate)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
@@ -11,18 +14,37 @@ public sealed class FileResourceOwner
         FilePath = Path.GetFullPath(path);
 
         var directory = Path.GetDirectoryName(FilePath);
-        if (!string.IsNullOrEmpty(directory)) { Directory.CreateDirectory(directory); }
+        if (!string.IsNullOrEmpty(directory))
+            Directory.CreateDirectory(directory);
 
-        // FileShare.None выявляет владельца файла(поток) который не даст другому потоку открыться на этом файле
         _stream = new FileStream(FilePath, mode, FileAccess.ReadWrite, FileShare.None);
     }
 
-    //Полный путь к файлу, которым владеет класс
     public string FilePath { get; }
 
-    //Байтовый размкер файла
     public long Length => _stream.Length;
 
-    //Если поток октрыт читаем / нет идем на**й(Спать)
     public bool IsOpen => _stream.CanRead;
+
+    // Пишет с начала и обрезает старый хвост.
+    public void Write(ReadOnlySpan<byte> data)
+    {
+        _stream.Position = 0;
+        _stream.Write(data);
+        _stream.SetLength(data.Length);
+        _stream.Flush();
+    }
+
+    // Читает файл целиком с начала.
+    public byte[] ReadAll()
+    {
+        _stream.Position = 0;
+        var buffer = new byte[_stream.Length];
+        _stream.ReadExactly(buffer);
+        return buffer;
+    }
+
+    public void WriteText(string text) => Write(Encoding.UTF8.GetBytes(text));
+
+    public string ReadText() => Encoding.UTF8.GetString(ReadAll());
 }
