@@ -7,13 +7,13 @@
 ```
 HooksCourse/
 ├── HooksCourse.sln
-├── KeyboardHookLab/            — winforms, net9.0-windows
-│   ├── Program.cs              — точка входа, цикл сообщений
-│   └── MainForm.cs             — окно с журналом клавиш
+├── KeyboardHookLab/                    — winforms, net9.0-windows
+│   ├── Program.cs                      — точка входа, цикл сообщений
+│   ├── MainForm.cs                     — журнал, счётчик, управление hook
+│   └── Interop/
+│       └── KeyboardHook.cs             — P/Invoke: SetWindowsHookEx и callback
 └── t/Пара 17. Хуки Windows и события клавиатуры.md
 ```
-
-Каталог `KeyboardHookLab/Interop` появится в П2, там будет обёртка над `SetWindowsHookEx`.
 
 Запуск:
 
@@ -30,30 +30,7 @@ dotnet run --project KeyboardHookLab
 4. Проверить, что при переключении в другое приложение события не идут.
 5. Объяснить разницу `KeyPreview` и системного hook.
 
-Сделано: `KeyDown` и `KeyUp` пишут строки `[KeyDown] <клавиша>` и `[KeyUp] <клавиша>`, модификаторы в скобках (`A (Alt)`). `Escape` чистит журнал и оставляет отметку `[System] Журнал очищен (Esc)`.
-
-Пример журнала:
-
-```
-[KeyDown] A
-[KeyUp] A
-[KeyDown] B
-[KeyUp] B
-[KeyDown] ShiftKey
-[KeyUp] ShiftKey
-[System] Журнал очищен (Esc)
-```
-
-Проверка:
-
-| Действие | Ожидаемый результат |
-|---|---|
-| Нажать `A` | `[KeyDown] A`, затем `[KeyUp] A` |
-| Нажать `Shift` | `[KeyDown] ShiftKey`, затем `[KeyUp] ShiftKey` |
-| `Alt+A` | `[KeyDown] A (Alt)`, модификатор видно в скобках |
-| `Esc` | журнал пуст, одна строка `[System] Журнал очищен (Esc)` |
-| Уйти в Блокнот и печатать там | новых строк нет |
-| Вернуться | события снова пишутся |
+Сделано: `KeyDown` и `KeyUp` пишут строки `[KeyDown] <клавиша>` и `[KeyUp] <клавиша>`, модификаторы в скобках (`A (Alt)`). `Escape` чистит журнал.
 
 ### `KeyPreview` vs hook
 
@@ -69,6 +46,48 @@ Hook — механизм самой Windows (`WH_KEYBOARD_LL`). Callback выз
 4. Hook ставится только при активном окне.
 5. Снятие hook при потере фокуса и закрытии.
 6. Обработка ошибок установки и снятия hook.
+
+Сделано:
+
+- Время в каждой строке — `[ЧЧ:мм:сс.мс]`, `DateTime.Now` с форматом `HH:mm:ss.fff`.
+- Кнопка `Очистить журнал` и `Esc` чистят поле и сбрасывают счётчик.
+- Чекбокс `Low-level hook` — включение/выключение.
+- `OnFormActivated` ставит hook, если чекбокс включён; `OnFormDeactivated` снимает.
+- `FormClosing` снимает hook, выключает чекбокс и делает `Dispose`.
+- `Start()`/`Stop()` кидают `Win32Exception` с кодом из `Marshal.GetLastWin32Error()`; форма ловит, пишет в журнал и возвращает чекбокс в реальное состояние.
+- `Start()` и `Stop()` идемпотентны: повторный `Start()` ничего не делает, повторный `Stop()` не падает.
+- Callback ловит и `WM_KEYDOWN`, и `WM_SYSKEYDOWN` — системные нажатия видны как `(SYS)`.
+- Чужие нажатия отсекаются по PID активного окна (`GetForegroundWindow` + `GetWindowThreadProcessId`).
+- UI из callback обновляется через `BeginInvoke`, чтоб не тормозить системный обработчик.
+- Счётчик событий выводится в отдельном `Label` снизу.
+
+Пример журнала (hook включён):
+
+```
+[13:13:04.479] [System] Hook установлен
+[13:13:05.316] [Hook] ↓ A
+[13:13:05.320] [WinForms] ↓ A
+[13:13:05.381] [WinForms] ↑ A
+[13:13:05.889] [Hook] ↓ LMenu (SYS)
+[13:13:05.894] [WinForms] ↓ Menu (Alt)
+[13:13:05.977] [Hook] ↓ F (SYS)
+[13:13:06.071] [WinForms] ↑ F (Alt)
+[13:13:06.945] [System] Hook снят
+```
+
+Одна клавиша видна дважды: WinForms обрабатывает её как `KeyDown`/`KeyUp`, а hook получает системное уведомление. Это ожидаемо.
+
+Проверка:
+
+| Действие | Ожидаемый результат |
+|---|---|
+| Клавиша без hook | только строки `[WinForms]` |
+| Включить hook, нажать `A` | `[Hook] ↓ A` и `[WinForms] ↓ A` / `↑ A` |
+| `Alt+F` | `[Hook] ↓ F (SYS)`, у WinForms `F (Alt)` |
+| Свернуть или уйти в другое окно | `[System] Hook снят`, событий нет |
+| Вернуться | `[System] Hook установлен`, если чекбокс включён |
+| `Очистить журнал` / `Esc` | пусто, счётчик в нуле |
+| Закрыть приложение с включённым hook | hook снят, процесс завершился без ошибок |
 
 ## Контрольные вопросы
 
