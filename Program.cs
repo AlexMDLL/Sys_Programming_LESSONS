@@ -46,7 +46,6 @@ public sealed class ProjectService
     }
 }
 /*
- 
 git init
 git config --global user.email "foxifoxovich394@gmail.com"
 git config --global user.name "AlexMDLL"
