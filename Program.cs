@@ -44,8 +44,17 @@ public sealed class ProjectService
 
         // TODO 5: Использовать using и проверить закрытие при исключении.
         DemoUsingAndException();
+
+
         // TODO 6: Объяснить разницу между управляемой памятью и внешним ресурсом.
+
         // Управляемая память контролируема? а внешний ресурс очень зависит от многих факторов мб
+        //Управляемая память vs внешний ресурс
+        //byte: живёт в куче CLR — GC сам решит надо или не надо, когда освободить
+        //FileStream: на цепи держт дескриптор вне всей кучи дерьма — GC видит только обёртку новогоднюю
+        //SafeHandle закроет поток когда то, но не по команде, он не дресированный
+        //Пока Dispose не вызван, файл в блоке, а дескрипторы сосут дальше инфу
+        //Поэтому внешку освобождают детер(чтоблять)минированно через using или dispose.
 
         // TODO 7: Снять показатели GC.GetTotalMemory и CollectionCount без принудительного GC.
 
@@ -54,7 +63,7 @@ public sealed class ProjectService
         // TODO 10: Описать, почему GC.Collect не заменяет Dispose.
 
         Console.WriteLine();
-        Console.WriteLine("Задания 1-5 выполнены.");
+        Console.WriteLine("Задания 1-6 выполнены.");
         await Task.CompletedTask;
     }
 
@@ -165,6 +174,7 @@ public sealed class ProjectService
         }
         catch (IOException ex) { Console.WriteLine($"  Файл занят: {ex.GetType().Name}"); }
     }
+
     
 }
 /*
