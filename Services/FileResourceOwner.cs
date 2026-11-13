@@ -3,7 +3,7 @@ using System.Text;
 namespace Variant14.Services;
 
 // Хозяин FileStream: сам открыл — сам закрыл
-public sealed class FileResourceOwner : IDisposable
+public sealed class FileResourceOwner : IDisposable, IAsyncDisposable
 {
     private readonly FileStream _stream; // живёт только тут, наружу не отдаём
     private bool _disposed; // уже закрылись?
@@ -66,6 +66,16 @@ public sealed class FileResourceOwner : IDisposable
 
         _disposed = true;
         _stream.Dispose();
+    }
+
+    // Из за того что FileStream умеет закрываться асинхронно — грех не воспользоваться таким сладким моментом... 😛
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+            return;
+
+        _disposed = true;
+        await _stream.DisposeAsync().ConfigureAwait(false);
     }
 
     // Поток закрыт — дальше низя, дальше бога нет ну в принципе как в кабинете физики или че там

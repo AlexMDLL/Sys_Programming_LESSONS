@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Text;
 using System.Threading.Channels;
 using Variant14.Services;
 
@@ -60,11 +61,13 @@ public sealed class ProjectService
         DemoGcMetrics();
 
         // TODO 8: Добавить IAsyncDisposable, если используемый ресурс поддерживает асинхронное освобождение.
+        await DemoAsyncDisposeAsync();
+
         // TODO 9: Реализовать тесты на владение потоком и leaveOpen.
         // TODO 10: Описать, почему GC.Collect не заменяет Dispose.
 
         Console.WriteLine();
-        Console.WriteLine("Задания 1-7 выполнены.");
+        Console.WriteLine("Задания 1-8 выполнены.");
         await Task.CompletedTask;
     }
 
@@ -193,7 +196,7 @@ public sealed class ProjectService
 
         Console.WriteLine($"  До:    память = {before.Memory:N0} байт, сборок = {before.Gen0}/{before.Gen1}/{before.Gen2}");
         Console.WriteLine($"  После: память = {after.Memory:N0} байт (+{after.Memory - before.Memory:N0}), сборок = {after.Gen0}/{after.Gen1}/{after.Gen2}");
-        Console.WriteLine($"  В списке {trash.Count} массивов — мусора не собраны на выезд не поедут");
+        Console.WriteLine($"  В списке {trash.Count} массивов — мусора не собраны на выезд не поедут(нет мусора короче)");
         Console.WriteLine("  GC.Collect не звали: когда собирать — решает GC.");
     }
     private static (long Memory, int Gen0, int Gen1, int Gen2) GcSnapshot()
@@ -201,6 +204,31 @@ public sealed class ProjectService
             GC.CollectionCount(0),
             GC.CollectionCount(1),
             GC.CollectionCount(2));
+
+    // TODO 8: асинхронное закрытие — FileStream умеет, вырос не еб**н
+    private static async Task DemoAsyncDisposeAsync()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "data", "async-dispose.bin");
+
+        Console.WriteLine("[Задание 8] IAsyncDisposable");
+
+        FileResourceOwner? captured = null;
+        await using (var resource = new FileResourceOwner(path))
+        {
+            captured = resource;
+            resource.WriteText("закрылись асинхронно");
+        }
+
+        Console.WriteLine($"  После await using: открыт = {captured?.IsOpen}");
+
+        // Файл свободен? да- читаем асинхронно.
+        await using (var probe = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            var buffer = new byte[probe.Length];
+            await probe.ReadExactlyAsync(buffer);
+            Console.WriteLine($"  Файл свободен, прочитано: {Encoding.UTF8.GetString(buffer)}");
+        }
+    }
 
     
 }
