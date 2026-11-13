@@ -57,13 +57,14 @@ public sealed class ProjectService
         //Поэтому внешку освобождают детер(чтоблять)минированно через using или dispose.
 
         // TODO 7: Снять показатели GC.GetTotalMemory и CollectionCount без принудительного GC.
+        DemoGcMetrics();
 
         // TODO 8: Добавить IAsyncDisposable, если используемый ресурс поддерживает асинхронное освобождение.
         // TODO 9: Реализовать тесты на владение потоком и leaveOpen.
         // TODO 10: Описать, почему GC.Collect не заменяет Dispose.
 
         Console.WriteLine();
-        Console.WriteLine("Задания 1-6 выполнены.");
+        Console.WriteLine("Задания 1-7 выполнены.");
         await Task.CompletedTask;
     }
 
@@ -174,6 +175,32 @@ public sealed class ProjectService
         }
         catch (IOException ex) { Console.WriteLine($"  Файл занят: {ex.GetType().Name}"); }
     }
+
+    // TODO 7: метрики без GC.Collect — пусть GC сам решает не маленький
+    private static void DemoGcMetrics()
+    {
+        Console.WriteLine("[Задание 6] в коментах на TODO");
+        Console.WriteLine("[Задание 7] GC.GetTotalMemory и CollectionCount без GC.Collect");
+
+        var before = GcSnapshot();
+
+        // 1 МБ мусора ссылки держим а то JIT долб****б и крашнет
+        var trash = new List<byte[]>(2000);
+        for (var i = 0; i < 2000; i++)
+            trash.Add(new byte[512]);
+
+        var after = GcSnapshot();
+
+        Console.WriteLine($"  До:    память = {before.Memory:N0} байт, сборок = {before.Gen0}/{before.Gen1}/{before.Gen2}");
+        Console.WriteLine($"  После: память = {after.Memory:N0} байт (+{after.Memory - before.Memory:N0}), сборок = {after.Gen0}/{after.Gen1}/{after.Gen2}");
+        Console.WriteLine($"  В списке {trash.Count} массивов — мусора не собраны на выезд не поедут");
+        Console.WriteLine("  GC.Collect не звали: когда собирать — решает GC.");
+    }
+    private static (long Memory, int Gen0, int Gen1, int Gen2) GcSnapshot()
+        => (GC.GetTotalMemory(forceFullCollection: false),
+            GC.CollectionCount(0),
+            GC.CollectionCount(1),
+            GC.CollectionCount(2));
 
     
 }
