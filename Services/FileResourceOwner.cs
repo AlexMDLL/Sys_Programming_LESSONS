@@ -58,7 +58,7 @@ public sealed class FileResourceOwner : IDisposable
 
     public string ReadText() => Encoding.UTF8.GetString(ReadAll());
 
-    // Закрываемся один раз; повторный вызов — не ошибка а так задумано, ну в принципе в 4 туду реализация будэ
+    // Закрываемся один раз; повторный вызов — не ошибка а так задумано, ну в принципе в 4 туду реализация будэ //готова
     public void Dispose()
     {
         if (_disposed)

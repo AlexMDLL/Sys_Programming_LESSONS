@@ -40,6 +40,7 @@ public sealed class ProjectService
         DemoDisposeGuard();
 
         // TODO 4: Проверить повторный вызов Dispose.
+        DemoDoubleDispose();
         // TODO 5: Использовать using и проверить закрытие при исключении.
         // TODO 6: Объяснить разницу между управляемой памятью и внешним ресурсом.
         // TODO 7: Снять показатели GC.GetTotalMemory и CollectionCount без принудительного GC.
@@ -49,7 +50,7 @@ public sealed class ProjectService
         // TODO 10: Описать, почему GC.Collect не заменяет Dispose.
 
         Console.WriteLine();
-        Console.WriteLine("Задания 1-3 выполнены.");
+        Console.WriteLine("Задания 1-4 выполнены.");
         await Task.CompletedTask;
     }
 
@@ -103,6 +104,36 @@ public sealed class ProjectService
         }
         catch (ObjectDisposedException ex) { Console.WriteLine($" Срем в Диспоз ну и читаем заодно: {ex.GetType().Name} ({ex.ObjectName})"); }
     }
+
+    // TODO 4: Проверить повторный вызов Dispose.
+    // Второй и третий — просто noop.
+    private static void DemoDoubleDispose()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "data", "double-dispose.bin");
+        var resource = new FileResourceOwner(path);
+        resource.WriteText("проверка повторного Dispose");
+        Console.WriteLine("[Задание 4] Повторный Dispose");
+
+        try
+        {
+            resource.Dispose();
+            Console.WriteLine($"  После 1-го Dispose: открыт = {resource.IsOpen}");
+
+            resource.Dispose();
+            resource.Dispose();
+            Console.WriteLine($"  После 2-го и 3-го:  открыт = {resource.IsOpen}, исключений нема");
+        }
+        catch (ObjectDisposedException ex) { Console.WriteLine($"  Ошибка: повторный Dispose бросил(кого) {ex.GetType().Name}");  }
+
+        // Поток реально опущен хе-хе — файл можно открыть снова.
+        try
+        {
+            using var probe = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None);
+            Console.WriteLine($"  Файл снова открыт: {probe.Length} байт");
+        }
+        catch (IOException ex) {  Console.WriteLine($"  Файл всё ещё занят сбором хлопка: {ex.GetType().Name}");}
+    }
+    
 }
 /*
 git init
