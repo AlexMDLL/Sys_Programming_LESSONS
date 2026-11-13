@@ -87,7 +87,6 @@ public sealed class MainForm : Form
         };
         bottomBar.Controls.Add(_counterLabel);
         // Фиксируем сетку: тулбарчик, журнальчик, счетчик с докером чтобы мозги не еб**(пудрил)
-        // Фиксированная сетка: тулбар, журнал, счётчик — без сюрпризов с порядком Dock.
         var layout = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
@@ -267,6 +266,11 @@ public sealed class MainForm : Form
     }
 
     private void AppendSystem(string text) => AppendLine($"[System] {text}");
+
+    private void InitializeComponent()
+    {
+
+    }
 
     private void AppendLine(string text)
     {

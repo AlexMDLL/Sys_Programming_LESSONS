@@ -1,6 +1,6 @@
 namespace KeyboardHookLab;
 
-// Точка входа. Application.Run поднимает цикл сообщений WinForms — без него клавиатурные события не приходят.
+// Точка входа. Application.Run поднимает цикл сообщений WinForms — без него ни**я не работает
 internal static class Program
 {
     [STAThread]
