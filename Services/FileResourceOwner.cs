@@ -23,7 +23,7 @@ public sealed class FileResourceOwner : IDisposable, IAsyncDisposable
         _leaveOpen = false;
     }
 
-    // Оборачиваем чужой поток в обертку leaveOpen решает кик его или нет самостоятельный типа шарите?
+    // Оборачиваем чужой поток в обертку подарашную и leaveOpen решает кик его или нет самостоятельный типа шарите?
     public FileResourceOwner(FileStream stream, bool leaveOpen)
     {
         ArgumentNullException.ThrowIfNull(stream);

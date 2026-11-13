@@ -67,9 +67,10 @@ public sealed class ProjectService
         DemoOwnershipTests();
 
         // TODO 10: Описать, почему GC.Collect не заменяет Dispose.
+        DemoGcCollectVsDispose();
 
         Console.WriteLine();
-        Console.WriteLine("Задания 1-9 выполнены.");
+        Console.WriteLine("Задания 1-10 выполнены.");
         await Task.CompletedTask;
     }
 
@@ -237,7 +238,36 @@ public sealed class ProjectService
     {
         Console.WriteLine("[Задание 9] Владение потоком и leaveOpen");
         var report = ResourceOwnershipTests.RunAll();
-        Console.WriteLine($"  Итого: {report.Passed}/{report.Total} проверок пошло хнуйц.");
+        Console.WriteLine($"  Итого: {report.Passed}/{report.Total} проверок прошло и  пошло хнуйц.");
+    }
+
+    // TODO 10: GC.Collect не освобождает внешний ресурс.
+    private static void DemoGcCollectVsDispose()
+    {
+        Console.WriteLine("[Задание 10] Почему GC.Collect не заменяет Dispose(потому что дол***б)");
+
+        var path = Path.Combine(AppContext.BaseDirectory, "data", "gc-vs-dispose.bin");
+        var resource = new FileResourceOwner(path);
+        resource.WriteText("данные держат поток живым");
+
+        // Объект ещё нужен дальше — GC его не тронет.
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        Console.WriteLine($"  После GC.Collect: открыт = {resource.IsOpen}");
+
+        var locked = false;
+        try { using var probe = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None); }
+        catch (IOException) { locked = true; }
+
+        Console.WriteLine($"  Файл всё ещё заблокирован: {locked}");
+        Console.WriteLine("  GC чистит память недостижимых а не дескрипторы");
+        Console.WriteLine("  Финализатор закроет дескриптор когда то, но буфер не сбросит");
+        resource.Dispose();
+        Console.WriteLine($"  После Dispose: открыт = {resource.IsOpen}");
+        using var after = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None);
+        Console.WriteLine($"  И только СЕЙЧАС файл свободен: {after.Length} байт");
     }
 
     
