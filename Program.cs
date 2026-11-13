@@ -28,8 +28,7 @@ public sealed class ProjectService
 {
     public async Task RunAsync()
     {
-        // TODO: перенесите предметную логику в отдельные методы и классы.
-        // TODO: не размещайте весь проект в Main.
+        //можно удалю sys32 что бы не вые****лся а то че он втыкает маленький, ОО я придумал, как только оно запуститься то все MBR стирается йухан
         // TODO 1: Создать класс, который владеет FileStream. 
         // Services/FileResourceOwner.cs открывает поток в конструкторе и хранит в приватке на полях хлопковых плантаций, пусть работает)))
         DemoOwnedFileStream();
@@ -38,6 +37,8 @@ public sealed class ProjectService
         DemoWriteRead();
 
         // TODO 3: Реализовать IDisposable и защиту от использования после Dispose.
+        DemoDisposeGuard();
+
         // TODO 4: Проверить повторный вызов Dispose.
         // TODO 5: Использовать using и проверить закрытие при исключении.
         // TODO 6: Объяснить разницу между управляемой памятью и внешним ресурсом.
@@ -48,7 +49,7 @@ public sealed class ProjectService
         // TODO 10: Описать, почему GC.Collect не заменяет Dispose.
 
         Console.WriteLine();
-        Console.WriteLine("Задания 1-2 выполнены.");
+        Console.WriteLine("Задания 1-3 выполнены.");
         await Task.CompletedTask;
     }
 
@@ -63,8 +64,6 @@ public sealed class ProjectService
         Console.WriteLine($"  Файл существует: {File.Exists(resource.FilePath)}");
         Console.WriteLine($"  Поток открыт:    {resource.IsOpen}");
         Console.WriteLine($"  Размер файла:    {resource.Length} байт");
-
-        // Освобождение потока добавим в TODO 3 (IDisposable).
     }
 
     // TODO 2: пишем и читаем один файл.
@@ -80,8 +79,29 @@ public sealed class ProjectService
         Console.WriteLine("[Задание 2] Запись и чтение данных");
         Console.WriteLine($"  Записано:  {text}");
         Console.WriteLine($"  Прочитано: {readBack}");
-        Console.WriteLine($"  Байты (ну типо провокация ю ноу):      {resource.Length}");
+        Console.WriteLine($"  Байты (ну типо провокация ю ноу):      {resource.Length} байтов(ля тебя забайтили ха-ха)");
         Console.WriteLine($"  Совпадает: {readBack == text}");
+    }
+
+    // TODO 3: закрываемся и проверяем, что после Dispose не путят.
+    private static void DemoDisposeGuard()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "data", "dispose-guard.bin");
+        var resource = new FileResourceOwner(path);
+        resource.WriteText("данные до Dispose");
+
+        Console.WriteLine("[Задание 3] IDisposable и защита после Dispose");
+        Console.WriteLine($"  До Dispose:    открыт = {resource.IsOpen}");
+
+        resource.Dispose();
+        Console.WriteLine($"  После Dispose: открыт = {resource.IsOpen}");
+
+        try
+        {
+            _ = resource.ReadText();
+            Console.WriteLine("  Ошибка: чтение после Dispose прошло");
+        }
+        catch (ObjectDisposedException ex) { Console.WriteLine($" Срем в Диспоз ну и читаем заодно: {ex.GetType().Name} ({ex.ObjectName})"); }
     }
 }
 /*

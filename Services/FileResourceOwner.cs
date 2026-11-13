@@ -2,10 +2,11 @@ using System.Text;
 
 namespace Variant14.Services;
 
-// Класс сам открывает FileStream и владеет им.
-public sealed class FileResourceOwner
+// Хозяин FileStream: сам открыл — сам закрыл
+public sealed class FileResourceOwner : IDisposable
 {
-    private readonly FileStream _stream; // наружу ни дам чек нидам ни дааааааам
+    private readonly FileStream _stream; // живёт только тут, наружу не отдаём
+    private bool _disposed; // уже закрылись?
 
     public FileResourceOwner(string path, FileMode mode = FileMode.OpenOrCreate)
     {
@@ -22,22 +23,31 @@ public sealed class FileResourceOwner
 
     public string FilePath { get; }
 
-    public long Length => _stream.Length;
+    public long Length
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _stream.Length;
+        }
+    }
 
-    public bool IsOpen => _stream.CanRead;
+    public bool IsOpen => !_disposed && _stream.CanRead;
 
-    // Пишет с начала и обрезает старый хвост.
+    // Пишет с начала, старый хвост обрезает
     public void Write(ReadOnlySpan<byte> data)
     {
+        ThrowIfDisposed();
         _stream.Position = 0;
         _stream.Write(data);
         _stream.SetLength(data.Length);
         _stream.Flush();
     }
 
-    // Читает файл целиком с начала.
+    // Читает файл целиком с начала
     public byte[] ReadAll()
     {
+        ThrowIfDisposed();
         _stream.Position = 0;
         var buffer = new byte[_stream.Length];
         _stream.ReadExactly(buffer);
@@ -47,4 +57,20 @@ public sealed class FileResourceOwner
     public void WriteText(string text) => Write(Encoding.UTF8.GetBytes(text));
 
     public string ReadText() => Encoding.UTF8.GetString(ReadAll());
+
+    // Закрываемся один раз; повторный вызов — не ошибка а так задумано, ну в принципе в 4 туду реализация будэ
+    public void Dispose()
+    {
+        if (_disposed)
+            return;
+
+        _disposed = true;
+        _stream.Dispose();
+    }
+
+    // Поток закрыт — дальше низя, дальше бога нет ну в принципе как в кабинете физики или че там
+    private void ThrowIfDisposed()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+    }
 }
