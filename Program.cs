@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading.Channels;
+using Variant14.Services;
 
 namespace Variant14;
 
@@ -12,7 +13,7 @@ internal static class Program
         Console.WriteLine("Зачётный проект 14: Менеджер ресурсов");
         Console.WriteLine(new string('=', 64));
 
-        // Стартовый сценарий нужен для проверки структуры проекта.
+        // Стартовый сценарий нужен для проверки структуры проекта. // оке
         // Реализацию индивидуальных требований выполняйте в ProjectService.
         var service = new ProjectService();
         await service.RunAsync();
@@ -23,13 +24,16 @@ internal static class Program
     }
 }
 
-public sealed class ProjectService
+public sealed class ProjectService 
 {
     public async Task RunAsync()
     {
         // TODO: перенесите предметную логику в отдельные методы и классы.
         // TODO: не размещайте весь проект в Main.
-        // TODO 1: Создать класс, который владеет FileStream.
+        // TODO 1: Создать класс, который владеет FileStream. 
+        // Services/FileResourceOwner.cs открывает поток в конструкторе и хранит в приватке на полях хлопковых плантаций, пусть работает)))
+        DemoOwnedFileStream();
+
         // TODO 2: Реализовать запись и чтение данных.
         // TODO 3: Реализовать IDisposable и защиту от использования после Dispose.
         // TODO 4: Проверить повторный вызов Dispose.
@@ -41,8 +45,27 @@ public sealed class ProjectService
         // TODO 9: Реализовать тесты на владение потоком и leaveOpen.
         // TODO 10: Описать, почему GC.Collect не заменяет Dispose.
 
-        Console.WriteLine("Стартовый проект собран. Реализуйте задания варианта.");
+        Console.WriteLine();
+        Console.WriteLine("Задание 1 выполнено: класс-владелец FileStream создан.");
         await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// TODO 1: класс-владелец сам открывает FileStream; вызывающий код получает
+    /// готовый объект и не работает с конструктором потока напрямую.
+    /// </summary>
+    private static void DemoOwnedFileStream()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "data", "resource-lab.bin");
+        var resource = new FileResourceOwner(path);
+
+        Console.WriteLine("[Задание 1] Класс, владеющий FileStream");
+        Console.WriteLine($"  Путь:            {resource.FilePath}");
+        Console.WriteLine($"  Файл существует: {File.Exists(resource.FilePath)}");
+        Console.WriteLine($"  Поток открыт:    {resource.IsOpen}");
+        Console.WriteLine($"  Размер файла:    {resource.Length} байт");
+
+        // Освобождение потока добавим в TODO 3 (IDisposable).
     }
 }
 /*
