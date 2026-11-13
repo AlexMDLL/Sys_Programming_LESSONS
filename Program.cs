@@ -45,3 +45,16 @@ public sealed class ProjectService
         await Task.CompletedTask;
     }
 }
+/*
+ 
+git init
+git config --global user.email "foxifoxovich394@gmail.com"
+git config --global user.name "AlexMDLL"
+git remote remove origin
+git remote add origin https://github.com/AlexMDLL/Sys_Programming_LESSONS.git
+git checkout ZACHERT
+git branch -M ZACHERT
+git add .
+git commit -m "ZACHERT_Skelet"
+git push -u origin ZACHERT --force
+ */
